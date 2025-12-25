@@ -1,20 +1,14 @@
 import { route } from 'preact-router';
 import type { Dungeon } from '../types';
 import { PlayerBadge, ModifierBadge, DungeonLevelBadge } from './badges';
+import { Time } from './time';
 
 interface DungeonCardProps {
   dungeon: Dungeon;
 }
 
-function formatTime(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
-}
-
 export function DungeonCard({ dungeon }: DungeonCardProps) {
-  const duration = dungeon.endTime ? dungeon.endTime - dungeon.startTime : 0;
+  const duration = dungeon.endTime ? (dungeon.endTime - dungeon.startTime) / 1000 : 0;
 
   return (
     <div
@@ -92,7 +86,7 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
       <div style={{ marginTop: '15px', fontSize: '13px', color: '#666' }}>
         <DungeonLevelBadge level={dungeon.difficulty} />
         <span> • </span>
-        <span>{formatTime(duration)}</span>
+        <Time seconds={duration} />
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 # Fellowship Log Analyzer
 
-
 ## Development
 
 1. Install dependencies `npm install`

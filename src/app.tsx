@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import Router from 'preact-router';
 import type { Dungeon } from './types';
-import { LogParser } from './parser';
+import { parseLog } from './parser';
 import { getLogText, storeLogText, clearLogText } from './storage';
 import { UploadPage } from './pages/upload';
 import { DungeonListPage } from './pages/dungeon-list';
@@ -18,8 +18,7 @@ export function App() {
         const storedLog = await getLogText();
         if (storedLog) {
           setLoading(true);
-          const parser = new LogParser();
-          const parsedDungeons = parser.parse(storedLog);
+          const parsedDungeons = parseLog(storedLog);
           console.log('Parsed dungeons:', parsedDungeons);
           setDungeons(parsedDungeons);
           setLoading(false);
@@ -42,8 +41,7 @@ export function App() {
       console.error('Could not store log:', err);
     }
 
-    const parser = new LogParser();
-    const parsedDungeons = parser.parse(text);
+    const parsedDungeons = parseLog(text);
 
     if (parsedDungeons.length === 0) {
       alert("There are no dungeons in this combat log");

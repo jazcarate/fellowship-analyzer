@@ -16,32 +16,11 @@ function toArray(param: string | null): number[] {
     .map(s => parseInt(s.trim()));
 }
 
-export class LogParser {
-  private dungeons: Dungeon[] = [];
-  private currentDungeon: Dungeon | null = null;
+export function parseLog(logText: string): Dungeon[] {
+  const dungeons: Dungeon[] = [];
+  let currentDungeon: Dungeon | null = null;
 
-  parse(logText: string): Dungeon[] {
-    let buffer = '';
-
-    for (let i = 0; i < logText.length; i++) {
-      const char = logText[i];
-
-      if (char === '\n') {
-        this.processLine(buffer);
-        buffer = '';
-      } else {
-        buffer += char;
-      }
-    }
-
-    if (buffer.trim()) {
-      this.processLine(buffer);
-    }
-
-    return this.dungeons;
-  }
-
-  private processLine(line: string): void {
+  function processLine(line: string): void {
     const trimmed = line.trim();
     if (!trimmed) return;
 
@@ -49,28 +28,28 @@ export class LogParser {
     if (parts.length < 2) return;
 
     const timestamp = new Date(parts[0]!).getTime();
-    this.processEvent(timestamp, parts[1]!, parts);
+    processEvent(timestamp, parts[1]!, parts);
   }
 
-  private processEvent(timestamp: number, type: string, params: string[]): void {
+  function processEvent(timestamp: number, type: string, params: string[]): void {
     switch (type) {
       case 'ZONE_CHANGE':
-        this.handleZoneChange(timestamp, params);
+        handleZoneChange(timestamp, params);
         return;
       case 'DUNGEON_START':
-        this.handleDungeonStart(timestamp, params);
+        handleDungeonStart(timestamp, params);
         return;
       case 'DUNGEON_END':
-        this.handleDungeonEnd(timestamp, params);
+        handleDungeonEnd(timestamp, params);
         return;
       case 'COMBATANT_INFO':
-        this.handleCombatantInfo(timestamp, params);
+        handleCombatantInfo(timestamp, params);
         return;
       case 'MAP_CHANGE':
         // TODO Remove after all maps are accounted for
-        if (this.currentDungeon && !getDungeonConfig(this.currentDungeon.dungeonId)?.maps[parseInt(params[2]!)]) {
-          console.log("MAP_CHANGE", this.currentDungeon, params, `${this.currentDungeon.dungeonId}: {
-    name: '${this.currentDungeon.name}',
+        if (currentDungeon && !getDungeonConfig(currentDungeon.dungeonId)?.maps[parseInt(params[2]!)]) {
+          console.log("MAP_CHANGE", currentDungeon, params, `${currentDungeon.dungeonId}: {
+    name: '${currentDungeon.name}',
     worldBounds: {
       minX: -40000.00,
       maxX: 40000.00,
@@ -85,7 +64,7 @@ export class LogParser {
           minY: ${params[4]},
           maxY: ${params[5]}
         },
-        image: '/assets/maps/${this.currentDungeon.name}-${params[3]?.replace(/"/g, '')}.webp'
+        image: '/assets/maps/${currentDungeon.name}-${params[3]?.replace(/"/g, '')}.webp'
       }
     }`);
         }
@@ -93,26 +72,26 @@ export class LogParser {
         return;
     }
 
-    if (!this.currentDungeon) return;
+    if (!currentDungeon) return;
 
-    const dungeonEvent = this.parseDungeonEvent(timestamp, type, params);
+    const dungeonEvent = parseDungeonEvent(timestamp, type, params);
     if (dungeonEvent) {
-      this.currentDungeon.events.push(dungeonEvent);
+      currentDungeon.events.push(dungeonEvent);
     }
   }
 
-  private parseDungeonEvent(timestamp: number, type: string, params: string[]): DungeonEvent | null {
+  function parseDungeonEvent(timestamp: number, type: string, params: string[]): DungeonEvent | null {
     switch (type) {
       case 'ABILITY_ACTIVATED':
-        return this.parseAbilityActivated(timestamp, params);
+        return parseAbilityActivated(timestamp, params);
 
       case 'RESOURCE_CHANGED':
-        return this.parseResourceChanged(timestamp, params);
+        return parseResourceChanged(timestamp, params);
 
       case 'SWING_DAMAGE':
       case 'ABILITY_DAMAGE':
       case 'ABILITY_PERIODIC_DAMAGE':
-        return this.parseDamage(timestamp, type as 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE', params);
+        return parseDamage(timestamp, type as 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE', params);
 
       case 'ABILITY_LIFESTEAL_HEAL':
       case 'DAMAGE_ABSORBED':
@@ -146,24 +125,24 @@ export class LogParser {
     }
   }
 
-  private handleZoneChange(timestamp: number, params: string[]): void {
+  function handleZoneChange(timestamp: number, params: string[]): void {
     // 2025-12-16T20:35:52.561+01:00|ZONE_CHANGE|"The Stronghold"|17|1|
-    if (this.currentDungeon && !this.currentDungeon.completed) {
-      this.currentDungeon.endTime = timestamp;
+    if (currentDungeon && !currentDungeon.completed) {
+      currentDungeon.endTime = timestamp;
     }
 
     const dungeonName = params[2]?.replace(/"/g, '') || 'Unknown Dungeon';
     const dungeonId = parseInt(params[3]!);
 
     if (dungeonId === 17) { //The Stronghold
-      this.currentDungeon = null;
+      currentDungeon = null;
       return;
     }
 
     const difficulty = parseInt(params[4]!) || 0;
 
-    this.currentDungeon = {
-      id: `dungeon-${this.dungeons.length}`,
+    currentDungeon = {
+      id: `dungeon-${dungeons.length}`,
       dungeonId,
       name: dungeonName,
       difficulty,
@@ -176,35 +155,35 @@ export class LogParser {
       maps: {}
     };
 
-    this.dungeons.push(this.currentDungeon);
+    dungeons.push(currentDungeon);
   }
 
-  private handleDungeonStart(timestamp: number, params: string[]): void {
+  function handleDungeonStart(timestamp: number, params: string[]): void {
     // 2025-12-16T20:06:28.695+01:00|DUNGEON_START|"Silken Hollow"|24|18|[6,4,15,16,21]|0
     const dungeonId = parseInt(params[3]!);
 
-    if (!this.currentDungeon || dungeonId !== this.currentDungeon?.dungeonId) {
+    if (!currentDungeon || dungeonId !== currentDungeon?.dungeonId) {
       console.warn("Starting a dungeon that never zone changed?");
       return;
     }
 
-    this.currentDungeon.modifierIds = toArray(params[5]!);
-    this.currentDungeon.startTime = timestamp;
+    currentDungeon.modifierIds = toArray(params[5]!);
+    currentDungeon.startTime = timestamp;
   }
 
-  private handleDungeonEnd(timestamp: number, _params: string[]): void {
+  function handleDungeonEnd(timestamp: number, _params: string[]): void {
     // 2025-12-16T20:18:21.250+01:00|DUNGEON_END|"Silken Hollow"|24|18|[6,4,15,16,21]|1|708396|402.035706|1|0
     // TODO: Some of these params should tell if the dungeon was completed
-    if (this.currentDungeon) {
-      this.currentDungeon.endTime = timestamp;
-      this.currentDungeon.completed = true;
-      this.currentDungeon = null;
+    if (currentDungeon) {
+      currentDungeon.endTime = timestamp;
+      currentDungeon.completed = true;
+      currentDungeon = null;
     }
   }
 
-  private handleCombatantInfo(_timestamp: number, params: string[]): void {
+  function handleCombatantInfo(_timestamp: number, params: string[]): void {
     // 2025-12-16T20:22:17.416+01:00|COMBATANT_INFO|01K7SS7P909W5SAPVCK4ZTFWM7|Player-1502085872|".Florius"|1|22|154.3|[188401,0,6133,1407,0,0,2202,320,1055,740,674]|[215,217,220,221,222,210,211]|[0,0,0,0,0,240]|[(3934,150,3,2,8,0,0,[(1,108),(2,36),(14,68),(23,158),(26,806)]),(3859,120,2,4,8,0,0,[(1,43),(14,90),(23,110)]),(3861,150,3,2,8,0,0,[(1,96),(2,32),(14,90),(15,110),(26,754)]),(3869,300,6,0,0,3,48,[(1,182),(2,61),(10,27),(15,150),(26,324)]),(3833,150,3,2,8,0,0,[(1,131),(2,44),(10,124),(15,151),(26,937)]),(3847,150,3,2,8,0,0,[(1,60),(2,20),(10,57),(15,69),(26,442)]),(3941,150,3,2,8,0,0,[(1,72),(2,24),(15,83),(23,68),(26,469)]),(3957,150,3,2,8,0,0,[(1,119),(2,40),(15,138),(23,113),(26,859)]),(3962,150,3,2,8,0,0,[(1,84),(2,28),(14,97),(23,79),(26,520)]),(3845,150,3,2,8,0,0,[(1,32),(10,112),(14,20)]),(3953,150,3,2,8,0,0,[(1,32),(14,20),(15,112)]),(1492,120,2,4,8,0,0,[(2,37),(15,77),(23,94)]),(112,120,2,4,8,0,0,[(2,37),(14,120),(23,52)]),(3986,150,3,2,8,0,0,[(1,143),(2,48),(14,135),(15,165)])]|6|[(159,1,1),(46,1,0),(2,1,1),(45,1,0),(40,1,1),(41,1,0),(43,1,1),(5,1,0),(37,1,0),(29,1,0),(36,1,0),(48,1,0),(32,1,0)]|[]
-    if (!this.currentDungeon) return;
+    if (!currentDungeon) return;
 
     const playerId = params[3]!;
     const playerName = params[4]?.replace(/"/g, '') || 'Unknown';
@@ -213,10 +192,10 @@ export class LogParser {
     const itemLevel = parseFloat(params[7]!) || 0;
     const talents = toArray(params[8]!);
 
-    const existing = this.currentDungeon.players.find(c => c.playerId === playerId);
+    const existing = currentDungeon.players.find(c => c.playerId === playerId);
     if (existing) return;
 
-    this.currentDungeon.players.push({
+    currentDungeon.players.push({
       playerId,
       playerName,
       isSelf,
@@ -224,10 +203,10 @@ export class LogParser {
       itemLevel,
       talents
     });
-    this.currentDungeon.players.sort((h1, h2) => h1.hero.order - h2.hero.order);
+    currentDungeon.players.sort((h1, h2) => h1.hero.order - h2.hero.order);
   }
 
-  private parseAbilityActivated(timestamp: number, params: string[]): AbilityActivatedEvent {
+  function parseAbilityActivated(timestamp: number, params: string[]): AbilityActivatedEvent {
     // 2025-12-16T20:25:59.973+01:00|ABILITY_ACTIVATED|Player-1502085872|".Florius"|977|"Shield Slam"|1|Npc-3743416768-162|"Tundra Stalker"|181006|181006|19173|31557.210938|-908.531250|2.835938|[(3,29815.28,29815.28),(4,84.94,100.00)]
     const playerId = params[2]!;
     const abilityId = parseInt(params[4]!);
@@ -243,7 +222,7 @@ export class LogParser {
     };
   }
 
-  private parseResourceChanged(timestamp: number, params: string[]): ResourceChangedEvent {
+  function parseResourceChanged(timestamp: number, params: string[]): ResourceChangedEvent {
     // 2025-12-16T20:25:59.974+01:00|RESOURCE_CHANGED|Player-1502085872|".Florius"|Player-1502085872|".Florius"|3|0.00|29815.28|29815.28|5963.06|0|"-"
     const playerId = params[2]!;
     const resourceId = parseInt(params[6]!);
@@ -262,7 +241,7 @@ export class LogParser {
     };
   }
 
-  private parseDamage(
+  function parseDamage(
     timestamp: number,
     type: 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE',
     params: string[]
@@ -298,4 +277,23 @@ export class LogParser {
       targetPosition
     };
   }
+
+  // Main parsing loop
+  let buffer = '';
+  for (let i = 0; i < logText.length; i++) {
+    const char = logText[i];
+
+    if (char === '\n') {
+      processLine(buffer);
+      buffer = '';
+    } else {
+      buffer += char;
+    }
+  }
+
+  if (buffer.trim()) {
+    processLine(buffer);
+  }
+
+  return dungeons;
 }

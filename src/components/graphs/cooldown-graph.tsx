@@ -1,6 +1,7 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { getAbility } from '../../constants';
+import { Time } from '../time';
 
 interface CooldownGraphProps {
   abilityId: number;
@@ -65,13 +66,23 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
 
       {/* Timeline */}
       <div style={{ position: 'relative', marginBottom: '15px' }}>
-        <div style={{
-          position: 'relative',
-          height: '60px',
-          background: '#f3f4f6',
-          borderRadius: '4px',
-          overflow: 'hidden'
-        }}>
+        <div
+          style={{
+            position: 'relative',
+            height: '60px',
+            background: '#f3f4f6',
+            borderRadius: '4px',
+            overflow: 'hidden',
+            cursor: 'pointer'
+          }}
+          onMouseMove={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const timePercent = x / rect.width;
+            setHoveredTime(timePercent * dungeonDuration);
+          }}
+          onMouseLeave={() => setHoveredTime(null)}
+        >
           {/* Cooldown windows */}
           {usages.map((usage, idx) => {
             const startPercent = (usage.relativeTime / dungeonDuration) * 100;
@@ -107,10 +118,8 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
                   width: '3px',
                   height: '100%',
                   background: '#2563eb',
-                  cursor: 'pointer'
+                  pointerEvents: 'none'
                 }}
-                onMouseEnter={() => setHoveredTime(usage.relativeTime)}
-                onMouseLeave={() => setHoveredTime(null)}
                 title={`${Math.floor(usage.relativeTime)}s`}
               />
             );
@@ -173,7 +182,7 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
                 onMouseEnter={() => setHoveredTime(usage.relativeTime)}
                 onMouseLeave={() => setHoveredTime(null)}
               >
-                {Math.floor(usage.relativeTime)}s
+                <Time seconds={usage.relativeTime} />
               </span>
             ))}
           </div>
