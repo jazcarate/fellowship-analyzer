@@ -46,7 +46,6 @@ export interface DungeonMap {
 }
 
 export interface DungeonConfig {
-  id: number;
   name: string;
   worldBounds: Bounds;
   maps: Record<number, DungeonMap>;
@@ -69,9 +68,9 @@ export interface ResourceChangedEvent {
   type: 'RESOURCE_CHANGED';
   playerId: string;
   resourceId: number;
+  change: number;
   amount: number;
   maxAmount: number;
-  position: Position;
 }
 
 export interface DamageEvent {

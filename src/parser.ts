@@ -69,7 +69,25 @@ export class LogParser {
       case 'MAP_CHANGE':
         // TODO Remove after all maps are accounted for
         if (this.currentDungeon && !getDungeonConfig(this.currentDungeon.dungeonId)?.maps[parseInt(params[2]!)]) {
-          console.log("MAP_CHANGE", this.currentDungeon, params);
+          console.log("MAP_CHANGE", this.currentDungeon, params, `${this.currentDungeon.dungeonId}: {
+    name: '${this.currentDungeon.name}',
+    worldBounds: {
+      minX: -40000.00,
+      maxX: 40000.00,
+      minY: -40000.00,
+      maxY: 40000.00
+    },
+    maps: {
+      ${params[2]!}: {
+        bounds: {
+          minX: ${params[6]},
+          maxX: ${params[7]},
+          minY: ${params[4]},
+          maxY: ${params[5]}
+        },
+        image: '/assets/maps/${this.currentDungeon.name}-${params[3]?.replace(/"/g, '')}.webp'
+      }
+    }`);
         }
         // Ignore
         return;
@@ -229,19 +247,18 @@ export class LogParser {
     // 2025-12-16T20:25:59.974+01:00|RESOURCE_CHANGED|Player-1502085872|".Florius"|Player-1502085872|".Florius"|3|0.00|29815.28|29815.28|5963.06|0|"-"
     const playerId = params[2]!;
     const resourceId = parseInt(params[6]!);
-    const amount = parseFloat(params[7]!);
+    const change = parseFloat(params[7]!);
+    const amount = parseFloat(params[8]!);
     const maxAmount = parseFloat(params[9]!);
-    const y = parseFloat(params[10]!);
-    const x = parseFloat(params[11]!);
 
     return {
       timestamp,
       type: 'RESOURCE_CHANGED',
       playerId,
       resourceId,
+      change,
       amount,
       maxAmount,
-      position: { x, y }
     };
   }
 

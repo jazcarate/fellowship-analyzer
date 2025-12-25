@@ -87,7 +87,7 @@ export function Minimap({ dungeon }: MinimapProps) {
           };
         }
 
-      } else if (event.type === 'ABILITY_ACTIVATED' || event.type === 'RESOURCE_CHANGED') {
+      } else if (event.type === 'ABILITY_ACTIVATED') {
         const player = getPlayer(event.playerId);
         if (player) {
           snapshot[event.playerId] = {

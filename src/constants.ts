@@ -150,32 +150,80 @@ export function getAbility(abilityId: number): Ability {
 
 const DUNGEONS: Record<number, DungeonConfig> = {
   8: {
-    id: 8,
     name: 'Wyrmheart',
     worldBounds: {
-      minX: -2676.88,
-      maxX: 24984.52,
-      minY: 24290.31,
-      maxY: 68858.62
+      minX: -32815.506374,
+      maxX: 49657.514725,
+      minY: 8640.414103,
+      maxY: 71315.020202
     },
     maps: {
       22: {
         bounds: {
-          minX: -32815.5,
-          maxX: 28184.5,
-          minY: 8640.4,
-          maxY: 33040.4
+          minX: -32815.506374,
+          maxX: 28184.493626,
+          minY: 8640.414103,
+          maxY: 33040.414103
         },
-        image: '/assets/maps/22.webp'
+        image: '/assets/maps/wyrmheart_start.webp'
       },
       23: {
         bounds: {
-          minX: -20742.5,
-          maxX: 49657.5,
-          minY: 29075.0,
-          maxY: 71315.0
+          minX: -20742.485275,
+          maxX: 49657.514725,
+          minY: 29075.020202,
+          maxY: 71315.020202
         },
-        image: '/assets/maps/23.webp'
+        image: '/assets/maps/wyrmheart_end.webp'
+      }
+    },
+  },
+  21: {
+    name: 'Urrak Markets',
+    worldBounds: {
+      minX: -43288.488172,
+      maxX: 44711.511828,
+      minY: -19081.419530,
+      maxY: 24918.580470
+    },
+    maps: {
+      29: {
+        bounds: {
+          minX: -43288.488172,
+          maxX: 44711.511828,
+          minY: -19081.419530,
+          maxY: 24918.580470
+        },
+        image: '/assets/maps/urrak_markets.webp'
+      }
+    }
+  },
+  6: {
+    name: 'Empyrean Sands',
+    worldBounds: {
+      minX: -40000.00,
+      maxX: 40000.00,
+      minY: -40000.00,
+      maxY: 40000.00
+    },
+    maps: {
+      27: {
+        bounds: {
+          minX: -54023.731225,
+          maxX: -18023.731225,
+          minY: -28941.867716,
+          maxY: 1058.132284
+        },
+        image: '/assets/maps/empyrean_sands_start.webp'
+      },
+      28: {
+        bounds: {
+          minX: -33554.623966,
+          maxX: 30045.376034,
+          minY: -21763.259801,
+          maxY: 31236.740199
+        },
+        image: '/assets/maps/empyrean_sands_end.webp'
       }
     }
   }
