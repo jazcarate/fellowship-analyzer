@@ -46,20 +46,28 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
       </div>
 
       <div style={{ marginTop: '15px', marginBottom: '10px' }}>
-        <p style={{ fontSize: '12px', color: '#666', margin: '0 0 8px 0' }}>
-          Click a player to analyze:
+        <p style={{ fontSize: '12px', color: '#666', margin: '0 0 8px 0', fontWeight: '500' }}>
+          Players:
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {dungeon.players.map(player => (
             <div
               key={player.playerId}
-              style={{ cursor: 'pointer' }}
+              style={{
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                borderRadius: '6px'
+              }}
               onClick={() => route(`/dungeon/${dungeon.id}/player/${player.playerId}`)}
               onMouseOver={(e) => {
-                (e.currentTarget as HTMLElement).style.opacity = '0.8';
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = 'translateY(-2px)';
+                el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onMouseOut={(e) => {
-                (e.currentTarget as HTMLElement).style.opacity = '1';
+                const el = e.currentTarget as HTMLElement;
+                el.style.transform = 'translateY(0)';
+                el.style.boxShadow = 'none';
               }}
             >
               <PlayerBadge player={player} />

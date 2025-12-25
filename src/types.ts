@@ -29,8 +29,7 @@ export interface Player {
 export interface Ability {
   name: string;
   icon: string;
-  baseCooldown: number;
-  getCooldown: (player: Player) => number;
+  getCooldown: (context: { player: Player }) => number;
 }
 
 export interface Bounds {

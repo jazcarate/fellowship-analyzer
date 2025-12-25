@@ -67,6 +67,8 @@ export function App() {
     <div class="container">
       {loading && (
         <div style={{
+          maxWidth: '600px',
+          margin: '100px auto',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -82,8 +84,8 @@ export function App() {
       )}
 
       {!loading && dungeons.length === 0 && (
-        <div style={{ marginBottom: '30px' }}>
-          <h1 style={{ margin: 0 }}>Fellowship Log Analyzer</h1>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <h1 style={{ margin: '0 0 30px 0', fontSize: '32px' }}>Fellowship Log Analyzer</h1>
           <UploadPage onFileSelect={handleFileSelect} />
         </div>
       )}

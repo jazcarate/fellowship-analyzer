@@ -1,7 +1,7 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../contexts/analysis-context';
 import { getDungeonConfig } from '../constants';
-import type { Dungeon, Position, Hero } from '../types';
+import type { Position, Hero } from '../types';
 
 interface PlayerEntity {
   type: 'player';
@@ -21,12 +21,8 @@ interface NPCEntity {
 type Entity = PlayerEntity | NPCEntity;
 type SnapshotData = Record<string, Entity>;
 
-interface MinimapProps {
-  dungeon: Dungeon;
-}
-
-export function Minimap({ dungeon }: MinimapProps) {
-  const { hoveredTime } = useAnalysis();
+export function Minimap() {
+  const { hoveredTime, dungeon } = useAnalysis();
 
   const dungeonConfig = getDungeonConfig(dungeon.dungeonId);
 
@@ -141,7 +137,7 @@ export function Minimap({ dungeon }: MinimapProps) {
     }}>
       <h4 style={{ marginTop: 0, marginBottom: '15px' }}>Dungeon Map</h4>
 
-      {!hoveredTime || !dungeonConfig ? (
+      {!dungeonConfig ? (
         <div style={{
           background: '#f3f4f6',
           borderRadius: '4px',
@@ -153,7 +149,7 @@ export function Minimap({ dungeon }: MinimapProps) {
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <p style={{ margin: 0 }}>{!dungeonConfig ? 'No map configuration available for this dungeon' : 'Hover over a timeline to see positions'}</p>
+          <p style={{ margin: 0 }}>No map configuration available for this dungeon</p>
         </div>
       ) : (
         <div style={{
@@ -164,6 +160,54 @@ export function Minimap({ dungeon }: MinimapProps) {
           borderRadius: '4px',
           overflow: 'hidden'
         }}>
+          {/* Render dungeon map images */}
+          {Object.entries(dungeonConfig.maps).map(([mapId, mapConfig]) => {
+            const worldBounds = dungeonConfig.worldBounds;
+            const mapBounds = mapConfig.bounds;
+
+            // Calculate world dimensions
+            const worldWidth = worldBounds.maxX - worldBounds.minX;
+            const worldHeight = worldBounds.maxY - worldBounds.minY;
+
+            // Calculate map dimensions in world coordinates
+            const mapWorldWidth = mapBounds.maxX - mapBounds.minX;
+            const mapWorldHeight = mapBounds.maxY - mapBounds.minY;
+
+            // Calculate map position relative to world bounds (0-1 range)
+            const relativeX = (mapBounds.minX - worldBounds.minX) / worldWidth;
+            const relativeY = (mapBounds.minY - worldBounds.minY) / worldHeight;
+
+            // Calculate map size relative to world (0-1 range)
+            const relativeWidth = mapWorldWidth / worldWidth;
+            const relativeHeight = mapWorldHeight / worldHeight;
+
+            // Convert to pixel coordinates
+            const pixelX = relativeX * mapWidth;
+            // Invert Y-axis: flip position so higher Y values appear at top
+            const pixelY = (1 - relativeY - relativeHeight) * mapHeight;
+            const pixelWidth = relativeWidth * mapWidth;
+            const pixelHeight = relativeHeight * mapHeight;
+
+            return (
+              <img
+                key={mapId}
+                src={mapConfig.image || '/assets/missing.png'}
+                alt={`Map ${mapId}`}
+                style={{
+                  position: 'absolute',
+                  left: `${pixelX}px`,
+                  top: `${pixelY}px`,
+                  width: `${pixelWidth}px`,
+                  height: `${pixelHeight}px`,
+                  objectFit: 'cover',
+                  opacity: 0.7,
+                  pointerEvents: 'none'
+                }}
+              />
+            );
+          })}
+
+          {/* Render entities on top of maps */}
           {Object.values(currentSnapshot).map(entity => {
             const mapPos = worldToMap(entity.position, mapWidth, mapHeight);
             if (!mapPos) return null;
@@ -177,7 +221,7 @@ export function Minimap({ dungeon }: MinimapProps) {
                     left: `${mapPos.x}px`,
                     top: `${mapPos.y}px`,
                     transform: 'translate(-50%, -50%)',
-                    zIndex: 2
+                    zIndex: 1
                   }}
                   title={entity.name}
                 >
@@ -215,7 +259,7 @@ export function Minimap({ dungeon }: MinimapProps) {
                     left: `${mapPos.x}px`,
                     top: `${mapPos.y}px`,
                     transform: 'translate(-50%, -50%)',
-                    zIndex: 1
+                    zIndex: 2
                   }}
                   title={entity.name}
                 >

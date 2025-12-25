@@ -58,39 +58,43 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
   return (
     <AnalysisContext.Provider value={contextValue}>
       <div>
-        <div style={{ marginBottom: '20px' }}>
-          <button
-            onClick={() => route('/')}
-            style={{ background: '#6b7280', color: '#fff', padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
-          >
-            ← Back to Dungeon List
-          </button>
-        </div>
-
-        <div style={{ marginBottom: '30px' }}>
-          <h3 style={{ margin: '0 0 15px 0', color: '#2563eb', fontSize: '18px' }}>
-            {dungeon.name} • <DungeonLevelBadge level={dungeon.difficulty} />
-          </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {player.hero.icon && (
-              <img
-                src={player.hero.icon}
-                alt={player.hero.name}
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '50%',
-                  border: `3px solid ${heroColor}`
-                }}
-              />
-            )}
-            <div>
-              <h2 style={{ margin: 0, color: heroColor }}>
-                {player.hero.name} - {player.playerName}
-              </h2>
-              <p style={{ margin: '5px 0 0 0', color: '#666', fontSize: '14px' }}>
-                Item Level: {player.itemLevel.toFixed(1)}
-              </p>
+        <div style={{ marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ marginBottom: '15px' }}>
+              <button
+                onClick={() => route('/')}
+                style={{ background: '#6b7280', color: '#fff', padding: '8px 16px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}
+              >
+                ← Back to Dungeon List
+              </button>
+            </div>
+            <h1 style={{ margin: '0 0 8px 0', fontSize: '28px' }}>
+              {dungeon.name}
+            </h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
+              <DungeonLevelBadge level={dungeon.difficulty} />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              {player.hero.icon && (
+                <img
+                  src={player.hero.icon}
+                  alt={player.hero.name}
+                  style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '50%',
+                    border: `3px solid ${heroColor}`
+                  }}
+                />
+              )}
+              <div>
+                <h2 style={{ margin: 0, color: heroColor, fontSize: '24px' }}>
+                  {player.hero.name} - {player.playerName}
+                </h2>
+                <p style={{ margin: '5px 0 0 0', color: '#666', fontSize: '14px' }}>
+                  Item Level: {player.itemLevel.toFixed(1)}
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -98,12 +102,13 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
         {!HeroComponent ? (
           <div style={{
             background: '#fff',
-            padding: '20px',
+            padding: '40px',
             borderRadius: '8px',
-            border: '1px solid #e0e0e0'
+            border: '1px solid #e0e0e0',
+            textAlign: 'center'
           }}>
-            <p style={{ color: '#666' }}>
-              No insights available for {player.hero?.name || 'this hero'}.
+            <p style={{ color: '#666', fontSize: '16px', margin: 0 }}>
+              No insights available for {player.hero.name}.
             </p>
           </div>
         ) : (
@@ -112,7 +117,7 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
               <HeroComponent />
             </div>
             <div>
-              <Minimap dungeon={dungeon} />
+              <Minimap />
             </div>
           </div>
         )}

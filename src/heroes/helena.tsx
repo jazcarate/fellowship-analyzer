@@ -1,76 +1,64 @@
-import { useMemo } from 'preact/hooks';
-import { useAnalysis } from '../contexts/analysis-context';
-import { CooldownTimeline } from '../components/cooldown-timeline';
-import { analyzeCooldown } from '../insights/cooldown-insight';
-import { analyzeToughness } from '../insights/toughness-insight';
-import { analyzeDamageTaken } from '../insights/damage-taken-insight';
+import { InsightCard } from '../components/insight-card';
+import { CooldownGraph } from '../components/graphs/cooldown-graph';
+import { ResourceGraph } from '../components/graphs/resource-graph';
+import { DamageGraph } from '../components/graphs/damage-graph';
+import { CombinedGraph } from '../components/graphs/combined-graph';
 
 export function HelenaInsights() {
-  const { dungeon, player, dungeonDuration } = useAnalysis();
-
-  const grandMeleeCooldownInsight = useMemo(() => {
-    const grandMeleeBaseCooldown = 120;
-    const hasMasterOfWar = player.talents?.includes(222);
-    const actualCooldown = hasMasterOfWar ? 96 : 120;
-    const cooldownReduction = grandMeleeBaseCooldown - actualCooldown;
-
-    return analyzeCooldown(
-      dungeon,
-      player,
-      1465,
-      grandMeleeBaseCooldown,
-      [222],
-      cooldownReduction
-    );
-  }, [dungeon, player]);
-
-  const toughnessInsight = useMemo(() => {
-    return analyzeToughness(dungeon, player);
-  }, [dungeon, player]);
-
-  const damageTakenInsight = useMemo(() => {
-    return analyzeDamageTaken(dungeon, player, 1000);
-  }, [dungeon, player]);
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <div style={{
-        background: '#fff',
-        padding: '20px',
-        borderRadius: '8px',
-        border: '1px solid #e0e0e0'
-      }}>
-        <h3 style={{ marginTop: 0, marginBottom: '10px' }}>Cooldown Usage</h3>
-        <p style={{ marginBottom: '20px', color: '#666' }}>
+      <InsightCard>
+        <InsightCard.Title>Cooldown Usage</InsightCard.Title>
+        <InsightCard.Description>
           Grand Melee is an important cooldown. You should press it often to maximize your damage output and utility.
-        </p>
-        <CooldownTimeline
-          insight={grandMeleeCooldownInsight}
-          dungeonDuration={dungeonDuration}
-        />
-      </div>
+        </InsightCard.Description>
+        <CooldownGraph abilityId={1465} />
+      </InsightCard>
 
-      <div style={{
-        background: '#fff',
-        padding: '20px',
-        borderRadius: '8px',
-        border: '1px solid #e0e0e0'
-      }}>
-        <h3 style={{ marginTop: 0, marginBottom: '10px' }}>Toughness Mitigation</h3>
-        <p style={{ marginBottom: '20px', color: '#666' }}>
-          You should strive to maximise toughness throughout the dungeon to reduce incoming damage and survive dangerous encounters.
-        </p>
+      <InsightCard>
+        <InsightCard.Title>Toughness Mitigation</InsightCard.Title>
+        <InsightCard.Description>
+          Helena's success is in managing your Toughness and having high values when damage intake is high.
+          Coordinate your toughness peaks with incoming damage spikes.
+        </InsightCard.Description>
+        <CombinedGraph>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '10px', color: '#666' }}>
+              Toughness Over Time
+            </div>
+            <ResourceGraph resourceId={3} />
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '10px', color: '#666' }}>
+              Damage Intake
+            </div>
+            <DamageGraph windowSize={1000} />
+          </div>
+        </CombinedGraph>
+      </InsightCard>
 
-        <p style={{ color: '#666', fontSize: '14px' }}>
-          Average Toughness: {toughnessInsight.averageToughness.toFixed(0)}
-        </p>
-        <p style={{ color: '#666', fontSize: '14px' }}>
-          Total Damage Taken: {damageTakenInsight.totalDamage.toLocaleString()}
-        </p>
-        <p style={{ color: '#666', fontSize: '14px' }}>
-          Peak Damage (1s window): {damageTakenInsight.peakDamage.toLocaleString()}
-        </p>
-      </div>
+      <InsightCard>
+        <InsightCard.Title>Preventable Damage</InsightCard.Title>
+        <InsightCard.Description>
+          Even though Helena is a tank, every point of damage you can avoid will make your healer happy.
+          Watch for dangerous mechanics and use your mobility to avoid unnecessary damage.
+        </InsightCard.Description>
+        <div style={{
+          padding: '40px',
+          textAlign: 'center',
+          color: '#666',
+          background: '#f9fafb',
+          borderRadius: '6px',
+          border: '2px dashed #e5e7eb'
+        }}>
+          <p style={{ margin: 0, fontSize: '14px' }}>
+            Preventable damage tracking coming soon...
+          </p>
+          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#9ca3af' }}>
+            This will show damage from avoidable mechanics
+          </p>
+        </div>
+      </InsightCard>
     </div>
   );
 }

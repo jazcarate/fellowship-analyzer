@@ -1,4 +1,4 @@
-import type { Hero, DungeonModifier, Ability, DungeonConfig, Player } from './types';
+import type { Hero, DungeonModifier, Ability, DungeonConfig } from './types';
 
 const HEROES: Record<number, Hero> = {
   22: { name: 'Helena', color: '#b46831', icon: '/assets/heroes/helena.jpg', order: 0 },
@@ -128,9 +128,9 @@ const ABILITIES: Record<number, Ability> = {
   1465: {
     name: 'Grand Melee',
     icon: '/assets/abilities/grand_melee.jpg',
-    baseCooldown: 120,
-    getCooldown: (player: Player) => {
-      return player.talents?.includes(222) ? 96 : 120;
+    getCooldown: ({ player }) => {
+      return player.talents.includes(222) //Master of War
+        ? 96 : 120;
     }
   }
 };
@@ -141,7 +141,6 @@ export function getAbility(abilityId: number): Ability {
     return {
       name: "Unknown ability " + abilityId,
       icon: "/assets/missing.png",
-      baseCooldown: 0,
       getCooldown: () => 0
     };
   }
@@ -195,6 +194,35 @@ const DUNGEONS: Record<number, DungeonConfig> = {
           maxY: 24918.580470
         },
         image: '/assets/maps/urrak_markets.webp'
+      }
+    }
+  },
+  24: {
+    name: 'Silken Hollow',
+    worldBounds: {
+      minX: -64228.321285,
+      maxX: 49771.678715,
+      minY: -15630.354306,
+      maxY: 47891.221316
+    },
+    maps: {
+      30: {
+        bounds: {
+          minX: -64228.321285,
+          maxX: 49771.678715,
+          minY: -15630.354306,
+          maxY: 41369.645694
+        },
+        image: '/assets/maps/silken_hollow_start.webp'
+      },
+      31: {
+        bounds: {
+          minX: -18228.321333,
+          maxX: 3771.678667,
+          minY: 36891.221316,
+          maxY: 47891.221316
+        },
+        image: '/assets/maps/silken_hollow_end.webp'
       }
     }
   },
