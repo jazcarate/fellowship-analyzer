@@ -5,8 +5,8 @@ import type { Dungeon, Player } from '../types';
 export interface AnalysisContextValue {
   dungeon: Dungeon;
   player: Player;
-  dungeonDuration: number;
-  hoveredTime: number | null;
+  dungeonDuration: number; // In seconds
+  hoveredTime: number | null; // Number of seconds
   setHoveredTime: (time: number | null) => void;
 }
 

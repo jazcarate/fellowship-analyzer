@@ -96,7 +96,6 @@ export function CooldownTimeline({ insight, dungeonDuration }: CooldownTimelineP
           const time = percent * dungeonDuration;
           setHoveredTime(time);
         }}
-        onMouseLeave={() => setHoveredTime(null)}
       >
         {hoveredTime !== null && (
           <div style={{

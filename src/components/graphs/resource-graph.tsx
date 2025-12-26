@@ -1,98 +1,99 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
-import type { ResourceChangedEvent } from '../../types';
 
 interface ResourceGraphProps {
   resourceId: number;
+  maxValue?: number;
+  /** Percentage thresholds to show as horizontal lines (e.g., [25, 50, 75]) */
+  thresholds?: number[];
 }
 
-export function ResourceGraph({ resourceId }: ResourceGraphProps) {
+const GRAPH_WIDTH = 100;
+const GRAPH_HEIGHT = 80;
+
+export function ResourceGraph({ resourceId, maxValue, thresholds }: ResourceGraphProps) {
   const { dungeon, player, dungeonDuration, hoveredTime, setHoveredTime } = useAnalysis();
 
+  const smoothWindow = 10;
+
   const dataPoints = useMemo(() => {
-    const points = dungeon.events
-      .filter((e): e is ResourceChangedEvent =>
-        e.type === 'RESOURCE_CHANGED' &&
-        e.playerId === player.playerId &&
-        e.resourceId === resourceId
-      )
-      .map(e => ({
-        timestamp: (e.timestamp - dungeon.startTime) / 1000,
-        value: e.amount,
-        maxValue: e.maxAmount
-      }));
+    const numSeconds = Math.ceil(dungeonDuration);
+    if (numSeconds === 0) return [];
+
+    const points: Array<{ sum: number; count: number }> = Array.from(
+      { length: numSeconds },
+      () => ({ sum: 0, count: 0 })
+    );
+
+    for (const event of dungeon.events) {
+      if (
+        event.type === 'RESOURCE_CHANGED' &&
+        event.playerId === player.playerId &&
+        event.resourceId === resourceId
+      ) {
+        const eventTime = (event.timestamp - dungeon.startTime) / 1000;
+        const centerSecond = Math.floor(eventTime);
+        const halfWindow = Math.floor(smoothWindow / 2);
+
+        for (let offset = -halfWindow; offset <= halfWindow; offset++) {
+          const targetSecond = centerSecond + offset;
+          if (targetSecond >= 0 && targetSecond < numSeconds) {
+            const point = points[targetSecond]!;
+            point.sum += (event.amount / event.maxAmount) * 100;
+            point.count++;
+          }
+        }
+      }
+    }
 
     return points;
-  }, [dungeon, player, resourceId]);
+  }, [dungeon, player, resourceId, dungeonDuration, smoothWindow]);
 
   if (dataPoints.length === 0) {
     return (
       <div style={{
-        padding: '20px',
+        padding: '40px',
         textAlign: 'center',
-        color: '#666',
-        background: '#f9fafb',
-        borderRadius: '6px'
+        background: 'var(--offwhite-color)',
+        borderRadius: '4px',
+        color: 'var(--text-secondary)'
       }}>
         No resource data available
       </div>
     );
   }
 
-  const avgValue = dataPoints.reduce((sum, p) => sum + p.value, 0) / dataPoints.length;
-  const minValue = Math.min(...dataPoints.map(p => p.value));
-  const maxPossible = dataPoints[0]?.maxValue || 100;
+  const graphMax = maxValue ?? 100;
+  const graphMaxWithPadding = graphMax * 1.1;
 
-  // Create SVG path
-  const width = 100; // percentage
-  const height = 80; // pixels
-  const points = dataPoints.map(p => ({
-    x: (p.timestamp / dungeonDuration) * width,
-    y: height - (p.value / maxPossible) * height
-  }));
+  const pathData = useMemo(() => {
+    const points = dataPoints.map((p, index) => ({
+      x: (index / dungeonDuration) * GRAPH_WIDTH,
+      y: GRAPH_HEIGHT - ((p.count > 0 ? p.sum / p.count : 0) / graphMaxWithPadding) * GRAPH_HEIGHT
+    }));
+    return points.length > 0
+      ? `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`
+      : '';
+  }, [dataPoints, dungeonDuration, graphMaxWithPadding]);
 
-  const pathData = points.length > 0
-    ? `M ${points.map(p => `${p.x},${p.y}`).join(' L ')}`
-    : '';
+  const hoveredValue = useMemo(() => {
+    if (hoveredTime == null) return 0;
+    const secondIndex = Math.floor(hoveredTime);
+    const point = dataPoints[secondIndex];
+    if (!point || point.count === 0) return 0;
+    return Math.round(point.sum / point.count);
+  }, [hoveredTime, dataPoints]);
+
 
   return (
     <div>
-      {/* Stats */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '10px',
-        marginBottom: '15px'
-      }}>
-        <div style={{ background: '#f9fafb', padding: '10px', borderRadius: '4px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Average</div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#2563eb' }}>
-            {Math.round(avgValue)}
-          </div>
-        </div>
-        <div style={{ background: '#f9fafb', padding: '10px', borderRadius: '4px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Minimum</div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>
-            {Math.round(minValue)}
-          </div>
-        </div>
-        <div style={{ background: '#f9fafb', padding: '10px', borderRadius: '4px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Maximum</div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#10b981' }}>
-            {Math.round(maxPossible)}
-          </div>
-        </div>
-      </div>
-
-      {/* Graph */}
       <div
         style={{
           position: 'relative',
-          width: '100%',
-          height: `${height}px`,
-          background: '#f9fafb',
-          borderRadius: '6px',
-          overflow: 'hidden'
+          height: `${GRAPH_HEIGHT}px`,
+          background: 'var(--offwhite-color)',
+          borderRadius: '4px',
+          cursor: 'pointer'
         }}
         onMouseMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
@@ -100,22 +101,35 @@ export function ResourceGraph({ resourceId }: ResourceGraphProps) {
           const timePercent = x / rect.width;
           setHoveredTime(timePercent * dungeonDuration);
         }}
-        onMouseLeave={() => setHoveredTime(null)}
       >
         <svg
           width="100%"
           height="100%"
-          viewBox={`0 0 ${width} ${height}`}
+          viewBox={`0 0 ${GRAPH_WIDTH} ${GRAPH_HEIGHT}`}
           preserveAspectRatio="none"
           style={{ display: 'block' }}
         >
-          {/* Area under curve */}
+          {thresholds?.map(threshold => {
+            const y = GRAPH_HEIGHT - (threshold / graphMaxWithPadding) * GRAPH_HEIGHT;
+            return (
+              <line
+                key={threshold}
+                x1={0}
+                y1={y}
+                x2={GRAPH_WIDTH}
+                y2={y}
+                stroke="#2563eb"
+                strokeWidth="0.3"
+                vectorEffect="non-scaling-stroke"
+                opacity="0.4"
+              />
+            );
+          })}
           <path
-            d={`${pathData} L ${width},${height} L 0,${height} Z`}
+            d={`${pathData} L ${GRAPH_WIDTH},${GRAPH_HEIGHT} L 0,${GRAPH_HEIGHT} Z`}
             fill="#93c5fd"
             opacity="0.3"
           />
-          {/* Line */}
           <path
             d={pathData}
             fill="none"
@@ -125,20 +139,31 @@ export function ResourceGraph({ resourceId }: ResourceGraphProps) {
           />
         </svg>
 
-        {/* Hover line */}
         {hoveredTime !== null && (
           <div
             style={{
               position: 'absolute',
               left: `${(hoveredTime / dungeonDuration) * 100}%`,
               top: 0,
+              bottom: 0,
               width: '2px',
-              height: '100%',
-              background: '#ef4444',
-              pointerEvents: 'none'
+              background: 'var(--secondary-color)',
+              pointerEvents: 'none',
+              zIndex: 10
             }}
           />
         )}
+      </div>
+
+      <div style={{
+        marginTop: '8px',
+        textAlign: 'center',
+        fontSize: '14px',
+        fontWeight: '600',
+        color: 'var(--text-primary)',
+        minHeight: '20px'
+      }}>
+        {Math.round(hoveredValue)}%
       </div>
     </div>
   );

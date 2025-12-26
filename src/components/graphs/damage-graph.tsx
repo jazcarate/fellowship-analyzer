@@ -43,11 +43,11 @@ export function DamageGraph({ windowSize = 1000 }: DamageGraphProps) {
   if (damageWindows.length === 0) {
     return (
       <div style={{
-        padding: '20px',
+        padding: '40px',
         textAlign: 'center',
-        color: '#666',
-        background: '#f9fafb',
-        borderRadius: '6px'
+        background: 'var(--offwhite-color)',
+        borderRadius: '4px',
+        color: 'var(--text-secondary)'
       }}>
         No damage data available
       </div>
@@ -63,6 +63,26 @@ export function DamageGraph({ windowSize = 1000 }: DamageGraphProps) {
   const height = 80;
   const barWidth = width / damageWindows.length;
 
+  const statBoxStyle = {
+    background: 'var(--offwhite-color)',
+    padding: '8px 12px',
+    borderRadius: '4px',
+    textAlign: 'center' as const
+  };
+
+  const statLabelStyle = {
+    fontSize: '10px',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.5px',
+    color: 'var(--text-secondary)',
+    marginBottom: '2px'
+  };
+
+  const statValueStyle = {
+    fontSize: '16px',
+    fontWeight: '600' as const
+  };
+
   return (
     <div>
       {/* Stats */}
@@ -72,21 +92,21 @@ export function DamageGraph({ windowSize = 1000 }: DamageGraphProps) {
         gap: '10px',
         marginBottom: '15px'
       }}>
-        <div style={{ background: '#f9fafb', padding: '10px', borderRadius: '4px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Total</div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#2563eb' }}>
+        <div style={statBoxStyle}>
+          <div style={statLabelStyle}>Total</div>
+          <div style={{ ...statValueStyle, color: 'var(--highlight-color)' }}>
             {Math.round(totalDamage).toLocaleString()}
           </div>
         </div>
-        <div style={{ background: '#f9fafb', padding: '10px', borderRadius: '4px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Average/s</div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#f59e0b' }}>
+        <div style={statBoxStyle}>
+          <div style={statLabelStyle}>Average/s</div>
+          <div style={{ ...statValueStyle, color: 'var(--warning)' }}>
             {Math.round(avgDamage).toLocaleString()}
           </div>
         </div>
-        <div style={{ background: '#f9fafb', padding: '10px', borderRadius: '4px' }}>
-          <div style={{ fontSize: '11px', color: '#6b7280', marginBottom: '2px' }}>Peak/s</div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#ef4444' }}>
+        <div style={statBoxStyle}>
+          <div style={statLabelStyle}>Peak/s</div>
+          <div style={{ ...statValueStyle, color: 'var(--error)' }}>
             {Math.round(peakDamage).toLocaleString()}
           </div>
         </div>
@@ -96,11 +116,10 @@ export function DamageGraph({ windowSize = 1000 }: DamageGraphProps) {
       <div
         style={{
           position: 'relative',
-          width: '100%',
           height: `${height}px`,
-          background: '#f9fafb',
-          borderRadius: '6px',
-          overflow: 'hidden'
+          background: 'var(--offwhite-color)',
+          borderRadius: '4px',
+          cursor: 'pointer'
         }}
         onMouseMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
@@ -108,7 +127,6 @@ export function DamageGraph({ windowSize = 1000 }: DamageGraphProps) {
           const timePercent = x / rect.width;
           setHoveredTime(timePercent * dungeonDuration);
         }}
-        onMouseLeave={() => setHoveredTime(null)}
       >
         <svg
           width="100%"
@@ -143,10 +161,11 @@ export function DamageGraph({ windowSize = 1000 }: DamageGraphProps) {
               position: 'absolute',
               left: `${(hoveredTime / dungeonDuration) * 100}%`,
               top: 0,
+              bottom: 0,
               width: '2px',
-              height: '100%',
-              background: '#1e40af',
-              pointerEvents: 'none'
+              background: 'var(--secondary-color)',
+              pointerEvents: 'none',
+              zIndex: 10
             }}
           />
         )}

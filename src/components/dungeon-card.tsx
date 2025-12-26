@@ -49,18 +49,16 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
               key={player.playerId}
               style={{
                 cursor: 'pointer',
-                transition: 'transform 0.2s, box-shadow 0.2s',
+                transition: 'box-shadow 0.2s',
                 borderRadius: '6px'
               }}
               onClick={() => route(`/dungeon/${dungeon.id}/player/${player.playerId}`)}
               onMouseOver={(e) => {
                 const el = e.currentTarget as HTMLElement;
-                el.style.transform = 'translateY(-2px)';
                 el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
               }}
               onMouseOut={(e) => {
                 const el = e.currentTarget as HTMLElement;
-                el.style.transform = 'translateY(0)';
                 el.style.boxShadow = 'none';
               }}
             >

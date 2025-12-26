@@ -84,7 +84,13 @@ export interface DamageEvent {
   targetPosition: Position;
 }
 
-export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent;
+export interface AllyDeathEvent {
+  timestamp: number;
+  type: 'ALLY_DEATH';
+  playerId: string;
+}
+
+export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent | AllyDeathEvent;
 
 export interface Dungeon {
   id: string;

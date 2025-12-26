@@ -2,11 +2,11 @@ import { InsightCard } from '../components/insight-card';
 import { CooldownGraph } from '../components/graphs/cooldown-graph';
 import { ResourceGraph } from '../components/graphs/resource-graph';
 import { DamageGraph } from '../components/graphs/damage-graph';
-import { CombinedGraph } from '../components/graphs/combined-graph';
+import { DeathCard } from '../components/graphs/death-card';
 
 export function HelenaInsights() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div>
       <InsightCard>
         <InsightCard.Title>Cooldown Usage</InsightCard.Title>
         <InsightCard.Description>
@@ -21,21 +21,31 @@ export function HelenaInsights() {
           Helena's success is in managing your Toughness and having high values when damage intake is high.
           Coordinate your toughness peaks with incoming damage spikes.
         </InsightCard.Description>
-        <CombinedGraph>
-          <div>
-            <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '10px', color: '#666' }}>
-              Toughness Over Time
-            </div>
-            <ResourceGraph resourceId={3} />
+        <div>
+          <div style={{
+            fontSize: '14px',
+            fontWeight: '600',
+            marginBottom: '12px',
+            color: 'var(--text-primary)'
+          }}>
+            Toughness Over Time
           </div>
-          <div>
-            <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '10px', color: '#666' }}>
-              Damage Intake
-            </div>
-            <DamageGraph windowSize={1000} />
+          <ResourceGraph resourceId={3} thresholds={[25, 50, 75]} />
+        </div>
+        <div>
+          <div style={{
+            fontSize: '14px',
+            fontWeight: '600',
+            marginBottom: '12px',
+            color: 'var(--text-primary)'
+          }}>
+            Damage Intake
           </div>
-        </CombinedGraph>
+          <DamageGraph windowSize={1000} />
+        </div>
       </InsightCard>
+
+      <DeathCard />
 
       <InsightCard>
         <InsightCard.Title>Preventable Damage</InsightCard.Title>
@@ -46,15 +56,14 @@ export function HelenaInsights() {
         <div style={{
           padding: '40px',
           textAlign: 'center',
-          color: '#666',
-          background: '#f9fafb',
-          borderRadius: '6px',
-          border: '2px dashed #e5e7eb'
+          background: 'var(--offwhite-color)',
+          borderRadius: '4px',
+          border: '2px dashed var(--border)'
         }}>
           <p style={{ margin: 0, fontSize: '14px' }}>
             Preventable damage tracking coming soon...
           </p>
-          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#9ca3af' }}>
+          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
             This will show damage from avoidable mechanics
           </p>
         </div>

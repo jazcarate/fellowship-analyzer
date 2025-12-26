@@ -3,6 +3,7 @@ import type {
   AbilityActivatedEvent,
   ResourceChangedEvent,
   DamageEvent,
+  AllyDeathEvent,
   DungeonEvent,
   Dungeon
 } from './types';
@@ -93,6 +94,9 @@ export function parseLog(logText: string): Dungeon[] {
       case 'ABILITY_PERIODIC_DAMAGE':
         return parseDamage(timestamp, type as 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE', params);
 
+      case 'ALLY_DEATH':
+        return parseAllyDeath(timestamp, params);
+
       case 'ABILITY_LIFESTEAL_HEAL':
       case 'DAMAGE_ABSORBED':
       case 'ABILITY_CHANNEL_FAIL':
@@ -109,7 +113,6 @@ export function parseLog(logText: string): Dungeon[] {
       case 'EFFECT_REMOVED':
       case 'EFFECT_REFRESHED':
       case 'UNIT_DEATH':
-      case 'ALLY_DEATH':
       case 'RESURRECT':
       case 'UNIT_DESTROYED':
       case 'ENCOUNTER_START':
@@ -238,6 +241,17 @@ export function parseLog(logText: string): Dungeon[] {
       change,
       amount,
       maxAmount,
+    };
+  }
+
+  function parseAllyDeath(timestamp: number, params: string[]): AllyDeathEvent {
+    // 2025-12-16T21:56:39.618+01:00|ALLY_DEATH|Player-1775765168|".Florius"|Npc-4044358528-138|"Corrupted Totemic"|644|"Attack"|0|0.500000
+    const playerId = params[2]!;
+
+    return {
+      timestamp,
+      type: 'ALLY_DEATH',
+      playerId,
     };
   }
 

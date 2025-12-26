@@ -11,7 +11,8 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
   const { dungeon, player, dungeonDuration, hoveredTime, setHoveredTime } = useAnalysis();
 
   const ability = getAbility(abilityId);
-  const cooldown = ability.getCooldown({ player });
+  const ultimatumReduction = dungeon.modifierIds.includes(16) ? 0.9 : 1.0;
+  const cooldown = ability.getCooldown({ player }) * ultimatumReduction;
 
   const usages = useMemo(() => {
     return dungeon.events
@@ -26,51 +27,74 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
       }));
   }, [dungeon, player, abilityId]);
 
-  const possibleUses = Math.floor(dungeonDuration / cooldown);
-  const actualUses = usages.length;
-  const wastedTime = (possibleUses - actualUses) * cooldown;
-  const efficiency = possibleUses > 0 ? Math.round((actualUses / possibleUses) * 100) : 0;
+  const wastedOpportunities = useMemo(() => {
+    const wasted: number[] = [];
+    let nextAvailable = 0;
+
+    for (let i = 0; i < usages.length; i++) {
+      const usage = usages[i]!;
+
+      while (nextAvailable + cooldown <= usage.relativeTime) {
+        wasted.push(nextAvailable);
+        nextAvailable += cooldown;
+      }
+
+      nextAvailable = usage.relativeTime + cooldown;
+    }
+
+    while (nextAvailable + cooldown <= dungeonDuration) {
+      wasted.push(nextAvailable);
+      nextAvailable += cooldown;
+    }
+
+    return wasted;
+  }, [usages, cooldown, dungeonDuration]);
 
   return (
     <div>
-      {/* Stats */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '15px',
-        marginBottom: '20px'
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
+        marginBottom: '15px'
       }}>
-        <div style={{ background: '#f9fafb', padding: '12px', borderRadius: '6px' }}>
-          <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Efficiency</div>
+        {ability.icon && (
+          <img
+            src={ability.icon}
+            alt={ability.name}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '8px',
+              border: '2px solid var(--border)'
+            }}
+          />
+        )}
+        <div>
           <div style={{
-            fontSize: '24px',
-            fontWeight: 'bold',
-            color: efficiency >= 80 ? '#10b981' : efficiency >= 60 ? '#f59e0b' : '#ef4444'
+            fontSize: '16px',
+            fontWeight: '600',
+            color: 'var(--text-primary)'
           }}>
-            {efficiency}%
+            {ability.name}
           </div>
-        </div>
-        <div style={{ background: '#f9fafb', padding: '12px', borderRadius: '6px' }}>
-          <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Uses</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#2563eb' }}>
-            {actualUses}/{possibleUses}
-          </div>
-        </div>
-        <div style={{ background: '#f9fafb', padding: '12px', borderRadius: '6px' }}>
-          <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Wasted Time</div>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ef4444' }}>
-            {Math.floor(wastedTime)}s
+          <div style={{
+            fontSize: '13px',
+            color: 'var(--text-secondary)',
+            marginTop: '2px'
+          }}>
+            {usages.length} {usages.length === 1 ? 'use' : 'uses'} • {Math.round(cooldown)}s cooldown
           </div>
         </div>
       </div>
 
       {/* Timeline */}
-      <div style={{ position: 'relative', marginBottom: '15px' }}>
+      <div style={{ marginBottom: '15px' }}>
         <div
           style={{
             position: 'relative',
             height: '60px',
-            background: '#f3f4f6',
+            background: 'var(--offwhite-color)',
             borderRadius: '4px',
             overflow: 'hidden',
             cursor: 'pointer'
@@ -81,7 +105,6 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
             const timePercent = x / rect.width;
             setHoveredTime(timePercent * dungeonDuration);
           }}
-          onMouseLeave={() => setHoveredTime(null)}
         >
           {/* Cooldown windows */}
           {usages.map((usage, idx) => {
@@ -94,11 +117,34 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
                 key={idx}
                 style={{
                   position: 'absolute',
+                  top: 0,
                   left: `${startPercent}%`,
                   width: `${widthPercent}%`,
                   height: '100%',
                   background: '#fbbf24',
-                  opacity: 0.3
+                  opacity: 0.4
+                }}
+              />
+            );
+          })}
+
+          {/* Wasted cooldown windows */}
+          {wastedOpportunities.map((wastedTime, idx) => {
+            const startPercent = (wastedTime / dungeonDuration) * 100;
+            const windowEnd = Math.min(wastedTime + cooldown, dungeonDuration);
+            const widthPercent = ((windowEnd - wastedTime) / dungeonDuration) * 100;
+
+            return (
+              <div
+                key={`wasted-${idx}`}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: `${startPercent}%`,
+                  width: `${widthPercent}%`,
+                  height: '100%',
+                  background: '#ef4444',
+                  opacity: 0.4
                 }}
               />
             );
@@ -115,10 +161,11 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
                   position: 'absolute',
                   left: `${leftPercent}%`,
                   top: 0,
+                  bottom: 0,
                   width: '3px',
-                  height: '100%',
-                  background: '#2563eb',
-                  pointerEvents: 'none'
+                  background: 'var(--highlight-color)',
+                  pointerEvents: 'none',
+                  zIndex: 1
                 }}
                 title={`${Math.floor(usage.relativeTime)}s`}
               />
@@ -132,10 +179,11 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
                 position: 'absolute',
                 left: `${(hoveredTime / dungeonDuration) * 100}%`,
                 top: 0,
+                bottom: 0,
                 width: '2px',
-                height: '100%',
-                background: '#ef4444',
-                pointerEvents: 'none'
+                background: 'var(--secondary-color)',
+                pointerEvents: 'none',
+                zIndex: 10
               }}
             />
           )}
@@ -145,17 +193,35 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
         <div style={{
           display: 'flex',
           gap: '15px',
-          marginTop: '10px',
-          fontSize: '12px',
-          color: '#666'
+          justifyContent: 'center',
+          marginTop: '10px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{ width: '12px', height: '12px', background: '#2563eb', borderRadius: '2px' }} />
-            <span>Available</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '12px',
+              height: '12px',
+              background: 'var(--highlight-color)',
+              borderRadius: '2px'
+            }} />
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Used</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <div style={{ width: '12px', height: '12px', background: '#fbbf24', borderRadius: '2px' }} />
-            <span>Cooldown</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '12px',
+              height: '12px',
+              background: '#fbbf24',
+              borderRadius: '2px'
+            }} />
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>On Cooldown</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{
+              width: '12px',
+              height: '12px',
+              background: 'var(--error)',
+              borderRadius: '2px'
+            }} />
+            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Wasted</span>
           </div>
         </div>
       </div>
@@ -163,24 +229,39 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
       {/* Usage list */}
       {usages.length > 0 && (
         <div>
-          <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px', fontWeight: '500' }}>
+          <div style={{
+            fontSize: '13px',
+            fontWeight: '600',
+            marginBottom: '8px',
+            color: 'var(--text-primary)'
+          }}>
             Ability Uses:
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px'
+          }}>
             {usages.map((usage, idx) => (
               <span
                 key={idx}
                 style={{
                   padding: '4px 8px',
-                  background: '#eff6ff',
-                  color: '#2563eb',
+                  background: '#ffe8cc',
+                  color: 'var(--highlight-color)',
                   borderRadius: '4px',
                   fontSize: '11px',
                   fontFamily: 'monospace',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  transition: 'transform 0.1s'
                 }}
-                onMouseEnter={() => setHoveredTime(usage.relativeTime)}
-                onMouseLeave={() => setHoveredTime(null)}
+                onMouseEnter={(e) => {
+                  setHoveredTime(usage.relativeTime);
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0px)';
+                }}
               >
                 <Time seconds={usage.relativeTime} />
               </span>

@@ -70,20 +70,23 @@ export function App() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center',
-          padding: '60px',
-          background: '#fff',
+          background: 'var(--surface)',
+          padding: '40px',
           borderRadius: '8px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+          border: '1px solid var(--border)'
         }}>
           <div class="spinner"></div>
-          <p style={{ marginTop: '20px', color: '#666', fontSize: '14px' }}>Parsing combat log...</p>
+          <p style={{ marginTop: '20px', fontSize: '16px', color: 'var(--text-secondary)' }}>
+            Parsing combat log...
+          </p>
         </div>
       )}
 
       {!loading && dungeons.length === 0 && (
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <h1 style={{ margin: '0 0 30px 0', fontSize: '32px' }}>Fellowship Log Analyzer</h1>
+        <div style={{ maxWidth: '800px', margin: '0 auto', paddingTop: '60px' }}>
+          <h1 style={{ fontSize: '32px', marginBottom: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>
+            Fellowship Log Analyzer
+          </h1>
           <UploadPage onFileSelect={handleFileSelect} />
         </div>
       )}

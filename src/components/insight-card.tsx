@@ -7,10 +7,10 @@ interface InsightCardProps {
 export function InsightCard({ children }: InsightCardProps) {
   return (
     <div style={{
-      background: '#fff',
+      background: 'var(--surface)',
       padding: '20px',
       borderRadius: '8px',
-      border: '1px solid #e0e0e0',
+      border: '1px solid var(--border)',
       marginBottom: '20px'
     }}>
       {children}
@@ -25,10 +25,10 @@ interface InsightCardTitleProps {
 InsightCard.Title = function InsightCardTitle({ children }: InsightCardTitleProps) {
   return (
     <h3 style={{
-      margin: '0 0 10px 0',
       fontSize: '18px',
       fontWeight: '600',
-      color: '#333'
+      margin: '0 0 8px 0',
+      color: 'var(--text-primary)'
     }}>
       {children}
     </h3>
@@ -42,10 +42,10 @@ interface InsightCardDescriptionProps {
 InsightCard.Description = function InsightCardDescription({ children }: InsightCardDescriptionProps) {
   return (
     <p style={{
-      margin: '0 0 15px 0',
       fontSize: '14px',
-      color: '#666',
-      lineHeight: '1.5'
+      lineHeight: '1.5',
+      color: 'var(--text-secondary)',
+      margin: '0 0 20px 0'
     }}>
       {children}
     </p>
