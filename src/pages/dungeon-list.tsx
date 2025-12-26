@@ -2,7 +2,6 @@ import type { Dungeon } from '../types';
 import { DungeonCard } from '../components/dungeon-card';
 
 interface DungeonListPageProps {
-  path?: string;
   dungeons: Dungeon[];
   onReset: () => void;
 }

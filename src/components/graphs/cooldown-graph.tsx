@@ -2,6 +2,7 @@ import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { getAbility } from '../../constants';
 import { Time } from '../time';
+import { Information } from '../information';
 
 interface CooldownGraphProps {
   abilityId: number;
@@ -50,6 +51,8 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
     return wasted;
   }, [usages, cooldown, dungeonDuration]);
 
+  const maxPossibleUses = Math.floor(dungeonDuration / cooldown) + 1;
+
   return (
     <div>
       <div style={{
@@ -83,7 +86,9 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
             color: 'var(--text-secondary)',
             marginTop: '2px'
           }}>
-            {usages.length} {usages.length === 1 ? 'use' : 'uses'} • {Math.round(cooldown)}s cooldown
+            {usages.length} / {maxPossibleUses}
+            <Information title='Based on the dungeon duration, if this ability was used off cooldown, it could have been used this number of times.' />
+            uses • <Time seconds={cooldown} /> cooldown
           </div>
         </div>
       </div>
@@ -214,7 +219,7 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
             }} />
             <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>On Cooldown</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
             <div style={{
               width: '12px',
               height: '12px',
@@ -222,11 +227,11 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
               borderRadius: '2px'
             }} />
             <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Wasted</span>
+            <Information title='This ability could have been used at any point during these windows, and it would still have been available for the next time it was actually used.' />
           </div>
         </div>
       </div>
 
-      {/* Usage list */}
       {usages.length > 0 && (
         <div>
           <div style={{
@@ -235,7 +240,7 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
             marginBottom: '8px',
             color: 'var(--text-primary)'
           }}>
-            Ability Uses:
+            Uses:
           </div>
           <div style={{
             display: 'flex',

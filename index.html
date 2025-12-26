@@ -6,6 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fellowship Log Analyzer</title>
   <link rel="icon" href="favicon.ico">
+  <script>
+    // Handle redirect from 404.html for client-side routing on GitHub Pages
+    (function() {
+      var redirectPath = sessionStorage.getItem('redirectPath');
+      if (redirectPath) {
+        sessionStorage.removeItem('redirectPath');
+        history.replaceState(null, '', redirectPath);
+      }
+    })();
+  </script>
 </head>
 
 <body>

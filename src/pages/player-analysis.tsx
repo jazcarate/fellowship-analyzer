@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { route } from 'preact-router';
+import { useLocation } from 'preact-iso';
 import type { Dungeon } from '../types';
 import { AnalysisContext } from '../contexts/analysis-context';
 import { HelenaInsights } from '../heroes/helena';
@@ -8,13 +8,13 @@ import { DungeonLevelBadge } from '../components/badges';
 import { RimeInsights } from '../heroes/rime';
 
 interface PlayerAnalysisPageProps {
-  path?: string;
   dungeonId?: string;
   playerId?: string;
   dungeons: Dungeon[];
 }
 
 export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnalysisPageProps) {
+  const { route } = useLocation();
   const dungeon = dungeons.find(d => d.id === dungeonId);
   const player = dungeon?.players.find(p => p.playerId === playerId);
 

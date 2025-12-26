@@ -1,4 +1,4 @@
-import { route } from 'preact-router';
+import { useLocation } from 'preact-iso';
 import type { Dungeon } from '../types';
 import { PlayerBadge, ModifierBadge, DungeonLevelBadge } from './badges';
 import { Time } from './time';
@@ -9,6 +9,7 @@ interface DungeonCardProps {
 
 export function DungeonCard({ dungeon }: DungeonCardProps) {
   const duration = dungeon.endTime ? (dungeon.endTime - dungeon.startTime) / 1000 : 0;
+  const { route } = useLocation();
 
   return (
     <div

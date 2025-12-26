@@ -129,8 +129,8 @@ const ABILITIES: Record<number, Ability> = {
     name: 'Grand Melee',
     icon: '/assets/abilities/grand_melee.jpg',
     getCooldown: ({ player }) => {
-      return player.talents.includes(222) //Master of War
-        ? 96 : 120;
+      return 120 *
+        (player.talents.includes(222) ? 0.8 : 1.0)//Master of War
     }
   }
 };

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import Router from 'preact-router';
+import { LocationProvider, Router, Route } from 'preact-iso';
 import type { Dungeon } from './types';
 import { parseLog } from './parser';
 import { getLogText, storeLogText, clearLogText } from './storage';
@@ -92,17 +92,12 @@ export function App() {
       )}
 
       {!loading && dungeons.length > 0 && (
-        <Router>
-          <DungeonListPage
-            path="/"
-            dungeons={dungeons}
-            onReset={resetApp}
-          />
-          <PlayerAnalysisPage
-            path="/dungeon/:dungeonId/player/:playerId"
-            dungeons={dungeons}
-          />
-        </Router>
+        <LocationProvider>
+          <Router>
+            <Route path="/" component={() => <DungeonListPage dungeons={dungeons} onReset={resetApp} />} />
+            <Route path="/dungeon/:dungeonId/player/:playerId" component={(props) => <PlayerAnalysisPage {...props} dungeons={dungeons} />} />
+          </Router>
+        </LocationProvider>
       )}
     </div>
   );
