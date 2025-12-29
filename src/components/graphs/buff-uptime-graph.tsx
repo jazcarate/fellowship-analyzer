@@ -31,17 +31,15 @@ export function BuffUptimeGraph({ buffId, highlightRefresh = false }: BuffUptime
         event.sourceId === player.playerId &&
         event.effectId === buffId
       ) {
-        const relativeTime = (event.timestamp - dungeon.startTime) / 1000;
-
         if (event.type === 'EFFECT_APPLIED') {
-          currentPeriodStart = relativeTime;
+          currentPeriodStart = event.timestamp;
         } else if (event.type === 'EFFECT_REFRESHED') {
-          refreshTimes.push(relativeTime);
+          refreshTimes.push(event.timestamp);
         } else if (event.type === 'EFFECT_REMOVED') {
           if (currentPeriodStart !== null) {
             buffPeriods.push({
               start: currentPeriodStart,
-              end: relativeTime
+              end: event.timestamp
             });
             currentPeriodStart = null;
           }
@@ -60,7 +58,7 @@ export function BuffUptimeGraph({ buffId, highlightRefresh = false }: BuffUptime
     const uptimePercentage = dungeonDuration > 0 ? (totalUptime / dungeonDuration) * 100 : 0;
 
     return { periods: buffPeriods, uptimePercentage, refreshTimes };
-  }, [dungeon, player, buffId, dungeonDuration]);
+  }, [dungeon.events, player.playerId, buffId, dungeonDuration]);
 
   return (
     <div>

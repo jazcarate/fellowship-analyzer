@@ -31,8 +31,7 @@ export function ResourceGraph({ resourceId, maxValue, thresholds }: ResourceGrap
         event.playerId === player.playerId &&
         event.resourceId === resourceId
       ) {
-        const eventTime = (event.timestamp - dungeon.startTime) / 1000;
-        const centerSecond = Math.floor(eventTime);
+        const centerSecond = Math.floor(event.timestamp);
         const halfWindow = Math.floor(smoothWindow / 2);
 
         for (let offset = -halfWindow; offset <= halfWindow; offset++) {
@@ -47,7 +46,7 @@ export function ResourceGraph({ resourceId, maxValue, thresholds }: ResourceGrap
     }
 
     return points;
-  }, [dungeon, player, resourceId, dungeonDuration, smoothWindow]);
+  }, [dungeon.events, player.playerId, resourceId, dungeonDuration, smoothWindow]);
 
   if (dataPoints.length === 0) {
     return (

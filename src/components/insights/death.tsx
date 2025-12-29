@@ -15,9 +15,9 @@ export function DeathInsight() {
       )
       .map(e => ({
         timestamp: e.timestamp,
-        relativeTime: (e.timestamp - dungeon.startTime) / 1000
+        relativeTime: e.timestamp
       }));
-  }, [dungeon, player]);
+  }, [dungeon.events, player.playerId]);
 
   // Don't render anything if no deaths
   if (deaths.length === 0) {

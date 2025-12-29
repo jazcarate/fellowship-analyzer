@@ -8,6 +8,8 @@ import { DungeonLevelBadge } from '../components/badges';
 import { RimeInsights } from '../heroes/rime';
 import { DeathInsight } from '../components/insights/death';
 import { AvoidableDamageInsight } from '../components/insights/avoidable-damage';
+import { FailedInterruptsInsight } from '../components/insights/failed-interrupts';
+import { FailedDispelsInsight } from '../components/insights/failed-dispels';
 import { PlaceholderInsights } from '../heroes/placeholder';
 import { InsightCard } from '../components/insight-card';
 
@@ -39,9 +41,7 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
   const heroColor = player.hero.color;
   const [hoveredTime, setHoveredTime] = useState<number | null>(null);
 
-  const dungeonDuration = dungeon.endTime
-    ? (dungeon.endTime - dungeon.startTime) / 1000
-    : 0;
+  const dungeonDuration = dungeon.endTime || 0;
 
   const contextValue = {
     dungeon,
@@ -126,6 +126,10 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
             <DeathInsight />
 
             <AvoidableDamageInsight />
+
+            {player.hero.interrupt && <FailedInterruptsInsight />}
+
+            {player.hero.dispel && <FailedDispelsInsight />}
           </div>
           <div style={{
             position: 'sticky',

@@ -32,32 +32,35 @@ export function AvoidableDamageInsight() {
         continue;
       }
 
-      const eventTimeSeconds = (event.timestamp - dungeon.startTime) / 1000;
+      // Skip non-tank abilities if player is a tank
+      if (ability.nonTankOnly && player.hero.tank) {
+        continue;
+      }
 
-      const openWindow = windows[ability.id];
+      const openWindow = windows[event.abilityId];
       if (openWindow) {
         const lastWindow = openWindow.at(-1)!;
-        if (lastWindow.startTime + WINDOW_THRESHOLD >= eventTimeSeconds) {
-          lastWindow.totalDamage += event.amount;
+        if (lastWindow.startTime + WINDOW_THRESHOLD >= event.timestamp) {
+          lastWindow.totalDamage += event.amountUnmitigated;
           lastWindow.count++;
         } else {
           openWindow.push({
-            startTime: eventTimeSeconds,
-            totalDamage: event.amount,
+            startTime: event.timestamp,
+            totalDamage: event.amountUnmitigated,
             count: 1
           });
         }
       } else {
-        windows[ability.id] = [{
-          startTime: eventTimeSeconds,
-          totalDamage: event.amount,
+        windows[event.abilityId] = [{
+          startTime: event.timestamp,
+          totalDamage: event.amountUnmitigated,
           count: 1
         }];
       }
     }
 
     return windows;
-  }, [dungeon.events, dungeon.startTime, player.playerId]);
+  }, [dungeon.events, player.playerId, player.hero.tank]);
 
   const entires = Object.entries(damageByAbility);
   if (entires.length === 0) {

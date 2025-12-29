@@ -27,9 +27,7 @@ export function Minimap() {
   const dungeonConfig = getDungeonConfig(dungeon.dungeonId);
 
   const spatialIndex = useMemo(() => {
-    const duration = dungeon.endTime
-      ? Math.ceil((dungeon.endTime - dungeon.startTime) / 1000)
-      : 0;
+    const duration = dungeon.endTime ? Math.ceil(dungeon.endTime) : 0;
 
     if (duration === 0) return [];
 
@@ -38,7 +36,7 @@ export function Minimap() {
     const getPlayer = (playerId: string) => dungeon.players.find(p => p.playerId === playerId)!;
 
     for (const event of dungeon.events) {
-      const secondOffset = Math.floor((event.timestamp - dungeon.startTime) / 1000);
+      const secondOffset = Math.floor(event.timestamp);
       if (secondOffset < 0 || secondOffset >= duration) continue;
 
       const snapshot = snapshots[secondOffset]!;

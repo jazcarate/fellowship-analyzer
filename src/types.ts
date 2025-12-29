@@ -8,6 +8,15 @@ export interface Hero {
   color: string;
   icon: string;
   order: number;
+  tank?: boolean;
+  interrupt?: {
+    abilityId: number;
+    cooldown: number;
+  };
+  dispel?: {
+    abilityId: number;
+    cooldown: number;
+  };
 }
 
 export interface DungeonModifier {
@@ -73,13 +82,13 @@ export interface EventWithTarget {
 
 
 export interface AbilityActivatedEvent extends EventWithSource {
-  timestamp: number;
+  timestamp: number; // Seconds relative to dungeon start
   type: 'ABILITY_ACTIVATED';
   abilityId: number;
 }
 
 export interface ResourceChangedEvent {
-  timestamp: number;
+  timestamp: number; // Seconds relative to dungeon start
   type: 'RESOURCE_CHANGED';
   playerId: string;
   resourceId: number;
@@ -89,26 +98,46 @@ export interface ResourceChangedEvent {
 }
 
 export interface DamageEvent extends EventWithSource, EventWithTarget {
-  timestamp: number;
+  timestamp: number; // Seconds relative to dungeon start
   type: 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE';
   amount: number;
+  amountUnmitigated: number;
   abilityId: number;
   abilityName: string;
 }
 
 export interface AllyDeathEvent {
-  timestamp: number;
+  timestamp: number; // Seconds relative to dungeon start
   type: 'ALLY_DEATH';
   playerId: string;
 }
 
 export interface EffectEvent extends EventWithSource {
-  timestamp: number;
+  timestamp: number; // Seconds relative to dungeon start
   type: 'EFFECT_APPLIED' | 'EFFECT_REMOVED' | 'EFFECT_REFRESHED';
   effectId: number;
 }
 
-export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent | AllyDeathEvent | EffectEvent;
+export interface InterruptEvent extends EventWithSource {
+  timestamp: number; // Seconds relative to dungeon start
+  type: 'ABILITY_INTERRUPT';
+  abilityId: number;
+}
+
+export interface CastSuccessfulEvent extends EventWithSource {
+  timestamp: number; // Seconds relative to dungeon start
+  type: 'ABILITY_CAST_SUCCESS';
+  abilityId: number;
+}
+
+export interface DispelEvent extends EventWithSource, EventWithTarget {
+  timestamp: number; // Seconds relative to dungeon start
+  type: 'ABILITY_DISPEL';
+  abilityId: number;
+  effectId: number;
+}
+
+export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent | AllyDeathEvent | EffectEvent | InterruptEvent | CastSuccessfulEvent | DispelEvent;
 
 /**
  * @param {DungeonEvent} event
@@ -132,10 +161,10 @@ export interface Dungeon {
   name: string;
   difficulty: number;
   modifierIds: number[];
-  startTime: number;
-  endTime: number | null;
+  startTime: number; // Absolute timestamp (milliseconds) when dungeon was played
+  endTime: number | null; // Seconds relative to startTime (null if incomplete)
   completed: boolean;
   players: Player[];
-  events: DungeonEvent[];
+  events: DungeonEvent[]; // All event timestamps are relative seconds from startTime
   maps: Record<number, MapInfo>;
 }

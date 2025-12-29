@@ -5,8 +5,12 @@ import type {
   DamageEvent,
   AllyDeathEvent,
   EffectEvent,
+  DispelEvent,
+  CastEvent,
   DungeonEvent,
-  Dungeon
+  Dungeon,
+  InterruptEvent,
+  CastSuccessfulEvent
 } from './types';
 import { getDungeonConfig } from './constants/maps';
 import { getHero } from './constants/heroes';
@@ -79,38 +83,52 @@ export function parseLog(logText: string): Dungeon[] {
   }
 
   function parseDungeonEvent(timestamp: number, type: string, params: string[]): DungeonEvent | null {
+    if (!currentDungeon || currentDungeon.startTime === -1) return null;
+
+    // Convert to relative seconds
+    const relativeSeconds = (timestamp - currentDungeon.startTime) / 1000;
+
     switch (type) {
       case 'ABILITY_ACTIVATED':
-        return parseAbilityActivated(timestamp, params);
+        return parseAbilityActivated(relativeSeconds, params);
 
       case 'RESOURCE_CHANGED':
-        return parseResourceChanged(timestamp, params);
+        return parseResourceChanged(relativeSeconds, params);
 
       case 'SWING_DAMAGE':
       case 'ABILITY_DAMAGE':
       case 'ABILITY_PERIODIC_DAMAGE':
-        return parseDamage(timestamp, type as 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE', params);
+        return parseDamage(relativeSeconds, type as 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE', params);
 
       case 'ALLY_DEATH':
-        return parseAllyDeath(timestamp, params);
+        return parseAllyDeath(relativeSeconds, params);
 
       case 'EFFECT_APPLIED':
       case 'EFFECT_REFRESHED':
       case 'EFFECT_REMOVED':
-        return parseEffect(timestamp, type, params);
+        return parseEffect(relativeSeconds, type, params);
+
+      case 'ABILITY_DISPEL':
+        return parseDispel(relativeSeconds, params);
+
+      case 'ABILITY_INTERRUPT':
+        return parseInterruptEvent(relativeSeconds, type, params);
+      case 'ABILITY_CAST_SUCCESS':
+        return parseCastSuccessfulEvent(relativeSeconds, type, params);
+
+      case 'ABILITY_CHANNEL_START':
+      case 'ABILITY_CAST_START':
+      case 'ABILITY_CAST_FAIL':
+      case 'ABILITY_CHANNEL_SUCCESS':
+      case 'ABILITY_CHANNEL_FAIL':
+        return null; // Handled by ABILITY_ACTIVATED -> ABILITY_DAMAGE -> ABILITY_INTERRUPT
+
+      case 'DAMAGE_ABSORBED':
+        return null; // Handled in the parseEffect.
 
       case 'ABILITY_LIFESTEAL_HEAL':
-      case 'DAMAGE_ABSORBED':
-      case 'ABILITY_CHANNEL_FAIL':
-      case 'ABILITY_CHANNEL_START':
-      case 'ABILITY_CHANNEL_SUCCESS':
-      case 'ABILITY_CAST_START':
-      case 'ABILITY_CAST_SUCCESS':
-      case 'ABILITY_CAST_FAIL':
-      case 'ABILITY_INTERRUPT':
       case 'ABILITY_PERIODIC_HEAL':
       case 'ABILITY_HEAL':
-      case 'ABILITY_DISPEL':
       case 'UNIT_DEATH':
       case 'RESURRECT':
       case 'UNIT_DESTROYED':
@@ -129,8 +147,8 @@ export function parseLog(logText: string): Dungeon[] {
 
   function handleZoneChange(timestamp: number, params: string[]): void {
     // 2025-12-16T20:35:52.561+01:00|ZONE_CHANGE|"The Stronghold"|17|1|
-    if (currentDungeon && !currentDungeon.completed) {
-      currentDungeon.endTime = timestamp;
+    if (currentDungeon && !currentDungeon.completed && currentDungeon.startTime !== -1) {
+      currentDungeon.endTime = (timestamp - currentDungeon.startTime) / 1000;
     }
 
     const dungeonName = parseString(params[2]!);
@@ -176,8 +194,8 @@ export function parseLog(logText: string): Dungeon[] {
   function handleDungeonEnd(timestamp: number, _params: string[]): void {
     // 2025-12-16T20:18:21.250+01:00|DUNGEON_END|"Silken Hollow"|24|18|[6,4,15,16,21]|1|708396|402.035706|1|0
     // TODO: Some of these params should tell if the dungeon was completed
-    if (currentDungeon) {
-      currentDungeon.endTime = timestamp;
+    if (currentDungeon && currentDungeon.startTime !== -1) {
+      currentDungeon.endTime = (timestamp - currentDungeon.startTime) / 1000;
       currentDungeon.completed = true;
       currentDungeon = null;
     }
@@ -278,6 +296,70 @@ export function parseLog(logText: string): Dungeon[] {
     };
   }
 
+  function parseDispel(timestamp: number, params: string[]): DispelEvent {
+    // 2025-12-16T20:27:46.068+01:00|ABILITY_DISPEL|Player-651690720|"b l @"|Player-46662368|"Haugen"|1054|"Cure Ailment"|866|"Shadebloom Poison"|15.561952|DEBUFF
+
+    const sourceId = params[2]!;
+    const sourceName = parseString(params[3]!);
+    const targetId = params[4]!;
+    const targetName = parseString(params[5]!);
+    const abilityId = parseInt(params[6]!);
+    const effectId = parseInt(params[8]!);
+    const sourceY = parseFloat(params[14]!);
+    const sourceX = parseFloat(params[15]!);
+    const targetY = parseFloat(params[21]!);
+    const targetX = parseFloat(params[22]!);
+
+    return {
+      timestamp,
+      type: 'ABILITY_DISPEL',
+      sourceId,
+      sourceName,
+      targetId,
+      targetName,
+      abilityId,
+      effectId,
+      sourcePosition: { x: sourceX, y: sourceY },
+      targetPosition: { x: targetX, y: targetY }
+    };
+  }
+
+  function parseInterruptEvent(timestamp: number, type: 'ABILITY_INTERRUPT', params: string[]): InterruptEvent {
+    // 2025-12-26T16:16:13.436+01:00|ABILITY_INTERRUPT|Player-2426405616|".Florius"|Npc-3611820096-163|"Deceitful Scholar"|976|"Bash"|730|"Rune of Detonation"
+    const sourceId = params[4]!;
+    const sourceName = parseString(params[5]!);
+    const abilityId = parseInt(params[8]!);
+    const y = parseFloat(params[14]!);
+    const x = parseFloat(params[15]!);
+
+    return {
+      timestamp,
+      type,
+      abilityId,
+      sourceId,
+      sourceName,
+      sourcePosition: { x, y }
+    };
+  }
+
+  function parseCastSuccessfulEvent(timestamp: number, type: 'ABILITY_CAST_SUCCESS', params: string[]): CastSuccessfulEvent {
+    // 2025-12-26T16:16:18.948+01:00|ABILITY_CAST_SUCCESS|Npc-3611820096-163|"Deceitful Scholar"|731|"Arcane Strike"|0|UnrecognizedType-0|"0"|14310|1272382|0|31626.343750|4404.554688|0.343750|[]
+    const sourceId = params[2]!;
+    const sourceName = parseString(params[3]!);
+    const abilityId = parseInt(params[4]!);
+    const y = parseFloat(params[12]!);
+    const x = parseFloat(params[13]!);
+
+    return {
+      timestamp,
+      type,
+      abilityId,
+      sourceId,
+      sourceName,
+      sourcePosition: { x, y }
+    };
+  }
+
   function parseDamage(
     timestamp: number,
     type: 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE',
@@ -295,7 +377,10 @@ export function parseLog(logText: string): Dungeon[] {
     const abilityId = parseInt(params[6]!);
     const abilityName = parseString(params[7]!);
 
-    const amount = parseInt(params[9]!); // TODO: Is this number mitigated?
+    const amount = parseInt(params[9]!);
+    //const absorbed = parseInt(params[10]!);
+    //const blocked = parseInt(params[12]!); // TODO Maybe?
+    const amountUnmitigated = parseInt(params[13]!);
 
     const sourceY = parseFloat(params[19]!);
     const sourceX = parseFloat(params[20]!);
@@ -313,6 +398,7 @@ export function parseLog(logText: string): Dungeon[] {
       targetId,
       targetName,
       amount,
+      amountUnmitigated,
       sourcePosition,
       targetPosition,
       abilityId,

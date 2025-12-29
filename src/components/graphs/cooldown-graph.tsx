@@ -24,9 +24,9 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
       )
       .map(e => ({
         timestamp: e.timestamp,
-        relativeTime: (e.timestamp - dungeon.startTime) / 1000
+        relativeTime: e.timestamp
       }));
-  }, [dungeon, player, abilityId]);
+  }, [dungeon.events, player.playerId, abilityId]);
 
   const wastedOpportunities = useMemo(() => {
     const wasted: number[] = [];

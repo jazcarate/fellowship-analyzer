@@ -18,8 +18,8 @@ export function HelenaInsights() {
       <InsightCard>
         <InsightCard.Title>Shields Up Uptime</InsightCard.Title>
         <InsightCard.Description>
-          Shields Up is Helena's key defensive buff that increases Toughness generation.
-          Maximize uptime to maintain high Toughness and improve survivability. Refresh it frequently to maintain high uptime.
+          Shields Up is Helena's key defensive buff that increases Block chance.
+          Refreshing the buff before it expires wastes the cooldown unless your Toughness is critically low.
         </InsightCard.Description>
         <BuffUptimeGraph buffId={1282} highlightRefresh />
       </InsightCard>

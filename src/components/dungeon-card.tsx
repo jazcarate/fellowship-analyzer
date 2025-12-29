@@ -8,7 +8,7 @@ interface DungeonCardProps {
 }
 
 export function DungeonCard({ dungeon }: DungeonCardProps) {
-  const duration = dungeon.endTime ? (dungeon.endTime - dungeon.startTime) / 1000 : 0;
+  const duration = dungeon.endTime || 0;
   const { route } = useLocation();
 
   return (
@@ -86,6 +86,8 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
         <DungeonLevelBadge level={dungeon.difficulty} />
         <span> • </span>
         <Time seconds={duration} />
+        <span> • </span>
+        <span>{new Date(dungeon.startTime).toLocaleString()}</span>
       </div>
     </div>
   );

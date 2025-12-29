@@ -19,7 +19,7 @@ export function DamageGraph({ windowSize = 1000 }: DamageGraphProps) {
         e.targetId === player.playerId
       )
       .map(e => ({
-        timestamp: (e.timestamp - dungeon.startTime) / 1000,
+        timestamp: e.timestamp,
         amount: e.amount
       }));
 
@@ -38,7 +38,7 @@ export function DamageGraph({ windowSize = 1000 }: DamageGraphProps) {
     }
 
     return windows;
-  }, [dungeon, player, dungeonDuration, windowSize]);
+  }, [dungeon.events, player.playerId, dungeonDuration, windowSize]);
 
   if (damageWindows.length === 0) {
     return (
