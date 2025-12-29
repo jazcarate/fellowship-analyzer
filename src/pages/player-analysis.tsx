@@ -6,6 +6,9 @@ import { HelenaInsights } from '../heroes/helena';
 import { Minimap } from '../components/minimap';
 import { DungeonLevelBadge } from '../components/badges';
 import { RimeInsights } from '../heroes/rime';
+import { DeathInsight } from '../components/insights/death';
+import { AvoidableDamageInsight } from '../components/insights/avoidable-damage';
+import { PlaceholderInsights } from '../heroes/placeholder';
 
 interface PlayerAnalysisPageProps {
   dungeonId?: string;
@@ -54,7 +57,7 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
       case 'Rime':
         return RimeInsights;
       default:
-        return null;
+        return PlaceholderInsights;
     }
   })();
 
@@ -103,36 +106,26 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
           </div>
         </div>
 
-        {!HeroComponent ? (
-          <div style={{
-            background: 'var(--surface)',
-            padding: '40px',
-            borderRadius: '8px',
-            border: '1px solid var(--border)',
-            textAlign: 'center'
-          }}>
-            <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
-              No insights available for {player.hero.name}.
-            </p>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '1fr 400px',
+          gap: '20px'
+        }}>
+          <div>
+            <HeroComponent />
+
+            <DeathInsight />
+
+            <AvoidableDamageInsight />
           </div>
-        ) : (
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 400px',
-            gap: '20px'
+            position: 'sticky',
+            top: '20px',
+            alignSelf: 'start'
           }}>
-            <div>
-              <HeroComponent />
-            </div>
-            <div style={{
-              position: 'sticky',
-              top: '20px',
-              alignSelf: 'start'
-            }}>
-              <Minimap />
-            </div>
+            <Minimap />
           </div>
-        )}
+        </div>
       </div>
     </AnalysisContext.Provider>
   );

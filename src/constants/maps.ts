@@ -1,22 +1,4 @@
-import type { Hero, DungeonModifier, Ability, DungeonConfig } from './types';
-
-const HEROES: Record<number, Hero> = {
-  22: { name: 'Helena', color: '#b46831', icon: '/assets/heroes/helena.jpg', order: 0 },
-  13: { name: 'Meiko', color: '#28e05c', icon: '/assets/heroes/meiko.jpg', order: 1 },
-  14: { name: 'Sylvie', color: '#EA4F85', icon: '/assets/heroes/sylvie.jpg', order: 2 },
-  20: { name: 'Vigour', color: '#dddbc5', icon: '/assets/heroes/vigour.jpg', order: 3 },
-  7: { name: 'Ardeos', color: '#eb6332', icon: '/assets/heroes/ardeos.jpg', order: 4 },
-  2: { name: 'Elarion', color: '#935dff', icon: '/assets/heroes/elarion.jpg', order: 5 },
-  11: { name: 'Mara', color: '#965a90', icon: '/assets/heroes/mara.jpg', order: 6 },
-  17: { name: 'Rime', color: '#1ea3ee', icon: '/assets/heroes/rime.jpg', order: 7 },
-  10: { name: 'Tariq', color: '#527af5', icon: '/assets/heroes/tariq.jpg', order: 8 }
-};
-
-export function getHero(heroId: number): Hero {
-  const hero = HEROES[heroId];
-  if (!hero) throw new Error("No hero found with id: " + heroId);
-  return hero;
-}
+import type { DungeonModifier, DungeonConfig, Bounds } from '../types';
 
 const MODIFIERS: Record<number, DungeonModifier> = {
   22: {
@@ -124,38 +106,32 @@ export function getModifier(modifierId: number): DungeonModifier {
   return modifier;
 }
 
-const ABILITIES: Record<number, Ability> = {
-  1465: {
-    name: 'Grand Melee',
-    icon: '/assets/abilities/grand_melee.jpg',
-    getCooldown: ({ player }) => {
-      return 120 *
-        (player.talents.includes(222) ? 0.8 : 1.0)//Master of War
-    }
-  }
-};
-
-export function getAbility(abilityId: number): Ability {
-  const ability = ABILITIES[abilityId];
-  if (!ability) {
-    return {
-      name: "Unknown ability " + abilityId,
-      icon: "/assets/missing.png",
-      getCooldown: () => 0
-    };
-  }
-  return ability;
-}
-
 const DUNGEONS: Record<number, DungeonConfig> = {
+  6: {
+    name: 'Empyrean Sands',
+    maps: {
+      27: {
+        bounds: {
+          minX: -54023.731225,
+          maxX: -18023.731225,
+          minY: -28941.867716,
+          maxY: 1058.132284
+        },
+        image: '/assets/maps/empyrean_sands_start.webp'
+      },
+      28: {
+        bounds: {
+          minX: -33554.623966,
+          maxX: 30045.376034,
+          minY: -21763.259801,
+          maxY: 31236.740199
+        },
+        image: '/assets/maps/empyrean_sands_end.webp'
+      }
+    }
+  },
   8: {
     name: 'Wyrmheart',
-    worldBounds: {
-      minX: -32815.506374,
-      maxX: 49657.514725,
-      minY: 8640.414103,
-      maxY: 71315.020202
-    },
     maps: {
       22: {
         bounds: {
@@ -177,14 +153,77 @@ const DUNGEONS: Record<number, DungeonConfig> = {
       }
     },
   },
+  11: {
+    name: 'Everdawn Grove',
+    maps: {
+      26: {
+        bounds: {
+          minX: -37963.955527,
+          maxX: 58036.044473,
+          minY: -29087.317220,
+          maxY: 18912.682780
+        },
+        image: '/assets/maps/everdawn_grove.webp'
+      }
+    }
+  },
+  13: {
+    name: 'Wraithtide Vault',
+    maps: {
+      10: {
+        bounds: {
+          minX: -11823.850496,
+          maxX: 34976.149504,
+          minY: -18452.656303,
+          maxY: 19347.235665
+        },
+        image: '/assets/maps/wraithtide_vault_start_village.webp'
+      },
+      11: {
+        bounds: {
+          minX: -31578.006399,
+          maxX: 12821.993601,
+          minY: -18759.843923,
+          maxY: 17237.752085
+        },
+        image: '/assets/maps/wraithtide_vault_upper_island.webp'
+      },
+      12: {
+        bounds: {
+          minX: -20581.931147,
+          maxX: 1018.068853,
+          minY: -38193.591506,
+          maxY: -21273.591506
+        },
+        image: '/assets/maps/wraithtide_vault_ship.webp'
+      },
+      13: {
+        bounds: {
+          minX: -24149.326894,
+          maxX: 10650.673106,
+          minY: -38675.557832,
+          maxY: -12575.557832
+        },
+        image: '/assets/maps/wraithtide_vault_jungle.webp'
+      }
+    }
+  },
+  15: {
+    name: 'Sailor\'s Abyss',
+    maps: {
+      24: {
+        bounds: {
+          minX: -25760.118521,
+          maxX: 35722.602182,
+          minY: -21360.591415,
+          maxY: 15302.768693
+        },
+        image: '/assets/maps/sailors_abyss.webp'
+      }
+    }
+  },
   21: {
     name: 'Urrak Markets',
-    worldBounds: {
-      minX: -43288.488172,
-      maxX: 44711.511828,
-      minY: -19081.419530,
-      maxY: 24918.580470
-    },
     maps: {
       29: {
         bounds: {
@@ -199,12 +238,6 @@ const DUNGEONS: Record<number, DungeonConfig> = {
   },
   24: {
     name: 'Silken Hollow',
-    worldBounds: {
-      minX: -64228.321285,
-      maxX: 49771.678715,
-      minY: -15630.354306,
-      maxY: 47891.221316
-    },
     maps: {
       30: {
         bounds: {
@@ -226,32 +259,17 @@ const DUNGEONS: Record<number, DungeonConfig> = {
       }
     }
   },
-  6: {
-    name: 'Empyrean Sands',
-    worldBounds: {
-      minX: -40000.00,
-      maxX: 40000.00,
-      minY: -40000.00,
-      maxY: 40000.00
-    },
+  25: {
+    name: 'Godfall Quarry',
     maps: {
-      27: {
+      32: {
         bounds: {
-          minX: -54023.731225,
-          maxX: -18023.731225,
-          minY: -28941.867716,
-          maxY: 1058.132284
+          minX: -38728.354002,
+          maxX: 69271.645998,
+          minY: 47299.297944,
+          maxY: 101299.297944
         },
-        image: '/assets/maps/empyrean_sands_start.webp'
-      },
-      28: {
-        bounds: {
-          minX: -33554.623966,
-          maxX: 30045.376034,
-          minY: -21763.259801,
-          maxY: 31236.740199
-        },
-        image: '/assets/maps/empyrean_sands_end.webp'
+        image: '/assets/maps/godfall_quarry.webp'
       }
     }
   }
@@ -259,4 +277,15 @@ const DUNGEONS: Record<number, DungeonConfig> = {
 
 export function getDungeonConfig(dungeonId: number): DungeonConfig | null {
   return DUNGEONS[dungeonId] || null;
+}
+
+export function getWorldBounds(config: DungeonConfig): Bounds {
+  const mapBounds = Object.values(config.maps).map(m => m.bounds);
+
+  return {
+    minX: Math.min(...mapBounds.map(b => b.minX)),
+    maxX: Math.max(...mapBounds.map(b => b.maxX)),
+    minY: Math.min(...mapBounds.map(b => b.minY)),
+    maxY: Math.max(...mapBounds.map(b => b.maxY))
+  };
 }

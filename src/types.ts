@@ -46,7 +46,6 @@ export interface DungeonMap {
 
 export interface DungeonConfig {
   name: string;
-  worldBounds: Bounds;
   maps: Record<number, DungeonMap>;
 }
 
@@ -82,6 +81,8 @@ export interface DamageEvent {
   amount: number;
   sourcePosition: Position;
   targetPosition: Position;
+  abilityId: number;
+  abilityName: string;
 }
 
 export interface AllyDeathEvent {

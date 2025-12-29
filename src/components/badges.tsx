@@ -1,5 +1,5 @@
 import type { Player } from '../types';
-import { getModifier } from '../constants';
+import { getModifier } from '../constants/maps';
 
 interface PlayerBadgeProps {
   player: Player;

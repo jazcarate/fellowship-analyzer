@@ -4,7 +4,7 @@ import { InsightCard } from '../insight-card';
 import { Time } from '../time';
 import type { AllyDeathEvent } from '../../types';
 
-export function DeathCard() {
+export function DeathInsight() {
   const { dungeon, player, setHoveredTime } = useAnalysis();
 
   const deaths = useMemo(() => {

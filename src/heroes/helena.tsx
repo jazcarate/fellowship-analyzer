@@ -2,11 +2,10 @@ import { InsightCard } from '../components/insight-card';
 import { CooldownGraph } from '../components/graphs/cooldown-graph';
 import { ResourceGraph } from '../components/graphs/resource-graph';
 import { DamageGraph } from '../components/graphs/damage-graph';
-import { DeathCard } from '../components/graphs/death-card';
 
 export function HelenaInsights() {
   return (
-    <div>
+    <>
       <InsightCard>
         <InsightCard.Title>Cooldown Usage</InsightCard.Title>
         <InsightCard.Description>
@@ -44,30 +43,6 @@ export function HelenaInsights() {
           <DamageGraph windowSize={1000} />
         </div>
       </InsightCard>
-
-      <DeathCard />
-
-      <InsightCard>
-        <InsightCard.Title>Preventable Damage</InsightCard.Title>
-        <InsightCard.Description>
-          Even though Helena is a tank, every point of damage you can avoid will make your healer happy.
-          Watch for dangerous mechanics and use your mobility to avoid unnecessary damage.
-        </InsightCard.Description>
-        <div style={{
-          padding: '40px',
-          textAlign: 'center',
-          background: 'var(--offwhite-color)',
-          borderRadius: '4px',
-          border: '2px dashed var(--border)'
-        }}>
-          <p style={{ margin: 0, fontSize: '14px' }}>
-            Preventable damage tracking coming soon...
-          </p>
-          <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
-            This will show damage from avoidable mechanics
-          </p>
-        </div>
-      </InsightCard>
-    </div>
+    </>
   );
 }

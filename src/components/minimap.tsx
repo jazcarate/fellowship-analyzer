@@ -1,6 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../contexts/analysis-context';
-import { getDungeonConfig } from '../constants';
+import { getDungeonConfig, getWorldBounds } from '../constants/maps';
 import type { Position, Hero } from '../types';
 
 interface PlayerEntity {
@@ -112,7 +112,7 @@ export function Minimap() {
   const worldToMap = (worldPos: Position, mapWidth: number, mapHeight: number): { x: number; y: number } | null => {
     if (!worldPos || !dungeonConfig) return null;
 
-    const bounds = dungeonConfig.worldBounds;
+    const bounds = getWorldBounds(dungeonConfig);
     const worldWidth = bounds.maxX - bounds.minX;
     const worldHeight = bounds.maxY - bounds.minY;
 
@@ -162,7 +162,7 @@ export function Minimap() {
         }}>
           {/* Render dungeon map images */}
           {Object.entries(dungeonConfig.maps).map(([mapId, mapConfig]) => {
-            const worldBounds = dungeonConfig.worldBounds;
+            const worldBounds = getWorldBounds(dungeonConfig);
             const mapBounds = mapConfig.bounds;
 
             // Calculate world dimensions

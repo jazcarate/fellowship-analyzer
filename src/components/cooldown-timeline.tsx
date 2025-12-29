@@ -1,5 +1,5 @@
 import { useAnalysis } from '../contexts/analysis-context';
-import { getAbility } from '../constants';
+import { getAbility } from '../constants/heroes';
 import type { CooldownInsight } from '../insights/cooldown-insight';
 
 interface CooldownTimelineProps {

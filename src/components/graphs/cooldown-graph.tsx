@@ -1,6 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
-import { getAbility } from '../../constants';
+import { getAbility } from '../../constants/heroes';
 import { Time } from '../time';
 import { Information } from '../information';
 

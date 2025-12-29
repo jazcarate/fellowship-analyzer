@@ -2,7 +2,7 @@ import { InsightCard } from '../components/insight-card';
 
 export function RimeInsights() {
   return (
-    <div>
+    <>
       <InsightCard>
         <InsightCard.Title>Winter Orbs</InsightCard.Title>
         <InsightCard.Description>
@@ -24,6 +24,6 @@ export function RimeInsights() {
           </p>
         </div>
       </InsightCard>
-    </div>
+    </>
   );
 }

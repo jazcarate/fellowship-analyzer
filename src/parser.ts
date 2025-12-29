@@ -7,7 +7,8 @@ import type {
   DungeonEvent,
   Dungeon
 } from './types';
-import { getDungeonConfig, getHero } from './constants';
+import { getDungeonConfig } from './constants/maps';
+import { getHero } from './constants/heroes';
 
 function toArray(param: string | null): number[] {
   return (param || '[]')
@@ -51,12 +52,6 @@ export function parseLog(logText: string): Dungeon[] {
         if (currentDungeon && !getDungeonConfig(currentDungeon.dungeonId)?.maps[parseInt(params[2]!)]) {
           console.log("MAP_CHANGE", currentDungeon, params, `${currentDungeon.dungeonId}: {
     name: '${currentDungeon.name}',
-    worldBounds: {
-      minX: -40000.00,
-      maxX: 40000.00,
-      minY: -40000.00,
-      maxY: 40000.00
-    },
     maps: {
       ${params[2]!}: {
         bounds: {
@@ -65,9 +60,10 @@ export function parseLog(logText: string): Dungeon[] {
           minY: ${params[4]},
           maxY: ${params[5]}
         },
-        image: '/assets/maps/${currentDungeon.name}-${params[3]?.replace(/"/g, '')}.webp'
+        image: '/assets/maps/${currentDungeon.name}-${params[3]}.webp'
       }
-    }`);
+    }
+          }`);
         }
         // Ignore
         return;
@@ -269,6 +265,9 @@ export function parseLog(logText: string): Dungeon[] {
     const targetId = params[4]!;
     const targetName = params[5]!.replace(/"/g, '');
 
+    const abilityId = parseInt(params[6]!);
+    const abilityName = params[7]!.replace(/"/g, '');
+
     const amount = parseInt(params[9]!); // TODO: Is this number mitigated?
 
     const sourceY = parseFloat(params[19]!);
@@ -279,7 +278,7 @@ export function parseLog(logText: string): Dungeon[] {
     const sourcePosition: Position = { x: sourceX, y: sourceY };
     const targetPosition: Position = { x: targetX, y: targetY };
 
-    return {
+    const event: DamageEvent = {
       timestamp,
       type,
       sourceId,
@@ -288,8 +287,12 @@ export function parseLog(logText: string): Dungeon[] {
       targetName,
       amount,
       sourcePosition,
-      targetPosition
+      targetPosition,
+      abilityId,
+      abilityName
     };
+
+    return event;
   }
 
   // Main parsing loop
