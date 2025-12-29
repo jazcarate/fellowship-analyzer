@@ -19,7 +19,7 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
     return dungeon.events
       .filter(e =>
         e.type === 'ABILITY_ACTIVATED' &&
-        e.playerId === player.playerId &&
+        e.sourceId === player.playerId &&
         e.abilityId === abilityId
       )
       .map(e => ({

@@ -21,7 +21,7 @@ export class EventQuery {
   getAbilityActivations(abilityId: number, playerId: string = this.player.playerId): AbilityActivatedEvent[] {
     return this.events.filter((e): e is AbilityActivatedEvent =>
       e.type === 'ABILITY_ACTIVATED' &&
-      e.playerId === playerId &&
+      e.sourceId === playerId &&
       e.abilityId === abilityId
     );
   }

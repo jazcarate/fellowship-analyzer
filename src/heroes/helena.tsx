@@ -2,6 +2,7 @@ import { InsightCard } from '../components/insight-card';
 import { CooldownGraph } from '../components/graphs/cooldown-graph';
 import { ResourceGraph } from '../components/graphs/resource-graph';
 import { DamageGraph } from '../components/graphs/damage-graph';
+import { BuffUptimeGraph } from '../components/graphs/buff-uptime-graph';
 
 export function HelenaInsights() {
   return (
@@ -12,6 +13,15 @@ export function HelenaInsights() {
           Grand Melee is an important cooldown. You should press it often to maximize your damage output and utility.
         </InsightCard.Description>
         <CooldownGraph abilityId={1465} />
+      </InsightCard>
+
+      <InsightCard>
+        <InsightCard.Title>Shields Up Uptime</InsightCard.Title>
+        <InsightCard.Description>
+          Shields Up is Helena's key defensive buff that increases Toughness generation.
+          Maximize uptime to maintain high Toughness and improve survivability. Refresh it frequently to maintain high uptime.
+        </InsightCard.Description>
+        <BuffUptimeGraph buffId={1282} highlightRefresh />
       </InsightCard>
 
       <InsightCard>

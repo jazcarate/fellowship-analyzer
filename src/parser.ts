@@ -4,6 +4,7 @@ import type {
   ResourceChangedEvent,
   DamageEvent,
   AllyDeathEvent,
+  EffectEvent,
   DungeonEvent,
   Dungeon
 } from './types';
@@ -93,6 +94,11 @@ export function parseLog(logText: string): Dungeon[] {
       case 'ALLY_DEATH':
         return parseAllyDeath(timestamp, params);
 
+      case 'EFFECT_APPLIED':
+      case 'EFFECT_REFRESHED':
+      case 'EFFECT_REMOVED':
+        return parseEffect(timestamp, type, params);
+
       case 'ABILITY_LIFESTEAL_HEAL':
       case 'DAMAGE_ABSORBED':
       case 'ABILITY_CHANNEL_FAIL':
@@ -105,9 +111,6 @@ export function parseLog(logText: string): Dungeon[] {
       case 'ABILITY_PERIODIC_HEAL':
       case 'ABILITY_HEAL':
       case 'ABILITY_DISPEL':
-      case 'EFFECT_APPLIED':
-      case 'EFFECT_REMOVED':
-      case 'EFFECT_REFRESHED':
       case 'UNIT_DEATH':
       case 'RESURRECT':
       case 'UNIT_DESTROYED':
@@ -130,7 +133,7 @@ export function parseLog(logText: string): Dungeon[] {
       currentDungeon.endTime = timestamp;
     }
 
-    const dungeonName = params[2]?.replace(/"/g, '') || 'Unknown Dungeon';
+    const dungeonName = parseString(params[2]!);
     const dungeonId = parseInt(params[3]!);
 
     if (dungeonId === 17) { //The Stronghold
@@ -185,7 +188,7 @@ export function parseLog(logText: string): Dungeon[] {
     if (!currentDungeon) return;
 
     const playerId = params[3]!;
-    const playerName = params[4]?.replace(/"/g, '') || 'Unknown';
+    const playerName = parseString(params[4]!);
     const isSelf = params[5] === '1';
     const hero = getHero(parseInt(params[6]!));
     const itemLevel = parseFloat(params[7]!) || 0;
@@ -207,7 +210,9 @@ export function parseLog(logText: string): Dungeon[] {
 
   function parseAbilityActivated(timestamp: number, params: string[]): AbilityActivatedEvent {
     // 2025-12-16T20:25:59.973+01:00|ABILITY_ACTIVATED|Player-1502085872|".Florius"|977|"Shield Slam"|1|Npc-3743416768-162|"Tundra Stalker"|181006|181006|19173|31557.210938|-908.531250|2.835938|[(3,29815.28,29815.28),(4,84.94,100.00)]
-    const playerId = params[2]!;
+    const sourceId = params[2]!;
+    const sourceName = parseString(params[3]!);
+
     const abilityId = parseInt(params[4]!);
     const y = parseFloat(params[12]!);
     const x = parseFloat(params[13]!);
@@ -215,9 +220,10 @@ export function parseLog(logText: string): Dungeon[] {
     return {
       timestamp,
       type: 'ABILITY_ACTIVATED',
-      playerId,
       abilityId,
-      position: { x, y }
+      sourceId,
+      sourceName,
+      sourcePosition: { x, y }
     };
   }
 
@@ -251,6 +257,27 @@ export function parseLog(logText: string): Dungeon[] {
     };
   }
 
+  function parseEffect(timestamp: number, type: 'EFFECT_APPLIED' | 'EFFECT_REMOVED' | 'EFFECT_REFRESHED', params: string[]): EffectEvent {
+    // 2025-12-26T20:23:36.271+01:00|EFFECT_REMOVED  |Player-2225604656|".Florius"|Player-2225604656|".Florius"|1282|"Shields Up"|0.000000 |0|BUFF|107198|213045|0|-6977.031250|8139.320312|3.533185|[(3,28879.49,32977.82),(4,91.42,100.00)]|984|"Shields Up"|-1
+    // 2025-12-26T20:23:24.245+01:00|EFFECT_APPLIED  |Player-2225604656|".Florius"|Player-2225604656|".Florius"|1282|"Shields Up"|12.000000|1|BUFF|110094|213045|0|-7814.015625|8213.390625|3.830060|[]|984|"Shields Up"|0
+    // 2025-12-26T20:24:30.819+01:00|EFFECT_REFRESHED|Player-2225604656|".Florius"|Player-2225604656|".Florius"|1282|"Shields Up"|12.000000|1|BUFF|111024|213045|0|742.546875  |3411.359375|5.126935|[]|984|"Shields Up"|0|Player-2225604656|".Florius"
+
+    const sourceId = params[2]!;
+    const sourceName = parseString(params[3]!);
+    const effectId = parseInt(params[6]!);
+    const y = parseFloat(params[14]!);
+    const x = parseFloat(params[15]!);
+
+    return {
+      timestamp,
+      type,
+      effectId,
+      sourceId,
+      sourceName,
+      sourcePosition: { x, y }
+    };
+  }
+
   function parseDamage(
     timestamp: number,
     type: 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE',
@@ -261,12 +288,12 @@ export function parseLog(logText: string): Dungeon[] {
     // 2025-12-16T20:26:10.161+01:00|ABILITY_PERIODIC_DAMAGE|Player-1502085872|".Florius"|Npc-3651666496-162|"Tundra Stalker"   |1276|"Sweeping Strike"|981|922 |0|-1|0|922 |Physical|Hit|161893|181006|0|32051.695312|4539.734375|2.929688|[(3,15684.34,29555.26),(4,89.45,100.00)]|560946|574035|0|31618.070312|4379.828125|0.351562|[]
 
     const sourceId = params[2]!;
-    const sourceName = params[3]!.replace(/"/g, '');
+    const sourceName = parseString(params[3]!);
     const targetId = params[4]!;
-    const targetName = params[5]!.replace(/"/g, '');
+    const targetName = parseString(params[5]!);
 
     const abilityId = parseInt(params[6]!);
-    const abilityName = params[7]!.replace(/"/g, '');
+    const abilityName = parseString(params[7]!);
 
     const amount = parseInt(params[9]!); // TODO: Is this number mitigated?
 
@@ -313,4 +340,8 @@ export function parseLog(logText: string): Dungeon[] {
   }
 
   return dungeons;
+}
+
+function parseString(s: string): string {
+  return s.replace(/"/g, '');
 }

@@ -45,7 +45,7 @@ export function analyzeCooldown(
 
   for (const event of dungeon.events) {
     if (event.type === 'ABILITY_ACTIVATED') {
-      const eventPlayerId = event.playerId;
+      const eventPlayerId = event.sourceId;
       const eventAbilityId = event.abilityId;
 
       if (eventPlayerId === playerId && eventAbilityId === abilityId) {

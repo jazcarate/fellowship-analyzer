@@ -32,6 +32,11 @@ export interface Ability {
   getCooldown: (context: { player: Player }) => number;
 }
 
+export interface Buff {
+  name: string;
+  icon: string;
+}
+
 export interface Bounds {
   minX: number;
   maxX: number;
@@ -53,12 +58,24 @@ export interface MapInfo {
   bounds: Bounds;
 }
 
-export interface AbilityActivatedEvent {
+
+export interface EventWithSource {
+  sourceId: string;
+  sourcePosition: Position;
+  sourceName: string;
+}
+
+export interface EventWithTarget {
+  targetId: string;
+  targetName: string;
+  targetPosition: Position;
+}
+
+
+export interface AbilityActivatedEvent extends EventWithSource {
   timestamp: number;
   type: 'ABILITY_ACTIVATED';
-  playerId: string;
   abilityId: number;
-  position: Position;
 }
 
 export interface ResourceChangedEvent {
@@ -71,16 +88,10 @@ export interface ResourceChangedEvent {
   maxAmount: number;
 }
 
-export interface DamageEvent {
+export interface DamageEvent extends EventWithSource, EventWithTarget {
   timestamp: number;
   type: 'SWING_DAMAGE' | 'ABILITY_DAMAGE' | 'ABILITY_PERIODIC_DAMAGE';
-  sourceId: string;
-  sourceName: string;
-  targetId: string;
-  targetName: string;
   amount: number;
-  sourcePosition: Position;
-  targetPosition: Position;
   abilityId: number;
   abilityName: string;
 }
@@ -91,7 +102,29 @@ export interface AllyDeathEvent {
   playerId: string;
 }
 
-export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent | AllyDeathEvent;
+export interface EffectEvent extends EventWithSource {
+  timestamp: number;
+  type: 'EFFECT_APPLIED' | 'EFFECT_REMOVED' | 'EFFECT_REFRESHED';
+  effectId: number;
+}
+
+export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent | AllyDeathEvent | EffectEvent;
+
+/**
+ * @param {DungeonEvent} event
+ * @returns {event is DungeonEvent & EventWithSource}
+ */
+export function hasSource(event: DungeonEvent): event is DungeonEvent & EventWithSource {
+  return 'sourcePosition' in event;
+}
+
+/**
+ * @param {DungeonEvent} event
+ * @returns {event is DungeonEvent & EventWithTarget}
+ */
+export function hasTarget(event: DungeonEvent): event is DungeonEvent & EventWithTarget {
+  return 'targetPosition' in event;
+}
 
 export interface Dungeon {
   id: string;

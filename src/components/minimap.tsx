@@ -1,7 +1,7 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../contexts/analysis-context';
 import { getDungeonConfig, getWorldBounds } from '../constants/maps';
-import type { Position, Hero } from '../types';
+import { type Position, type Hero, hasSource, hasTarget } from '../types';
 
 interface PlayerEntity {
   type: 'player';
@@ -43,10 +43,7 @@ export function Minimap() {
 
       const snapshot = snapshots[secondOffset]!;
 
-      if (event.type === 'SWING_DAMAGE' ||
-        event.type === 'ABILITY_DAMAGE' ||
-        event.type === 'ABILITY_PERIODIC_DAMAGE') {
-
+      if (hasSource(event)) {
         if (event.sourceId.startsWith("Player-")) {
           const sourcePlayer = getPlayer(event.sourceId);
           snapshot[event.sourceId] = {
@@ -64,7 +61,9 @@ export function Minimap() {
             position: event.sourcePosition
           };
         }
+      }
 
+      if (hasTarget(event)) {
         if (event.targetId.startsWith("Player-")) {
           const targetPlayer = getPlayer(event.targetId);
           snapshot[event.targetId] = {
@@ -80,18 +79,6 @@ export function Minimap() {
             id: event.targetId,
             name: event.targetName || 'Unknown',
             position: event.targetPosition
-          };
-        }
-
-      } else if (event.type === 'ABILITY_ACTIVATED') {
-        const player = getPlayer(event.playerId);
-        if (player) {
-          snapshot[event.playerId] = {
-            type: 'player',
-            id: event.playerId,
-            name: player.playerName,
-            hero: player.hero,
-            position: event.position
           };
         }
       }

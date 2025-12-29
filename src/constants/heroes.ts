@@ -1,4 +1,4 @@
-import type { Hero, Ability } from '../types';
+import type { Hero, Ability, Buff } from '../types';
 
 const HEROES: Record<number, Hero> = {
   22: { name: 'Helena', color: '#b46831', icon: '/assets/heroes/helena.jpg', order: 0 },
@@ -39,4 +39,22 @@ export function getAbility(abilityId: number): Ability {
     };
   }
   return ability;
+}
+
+const BUFFS: Record<number, Buff> = {
+  1282: {
+    name: 'Shields Up',
+    icon: '/assets/abilities/shields_up.jpg'
+  }
+};
+
+export function getBuff(buffId: number): Buff {
+  const buff = BUFFS[buffId];
+  if (!buff) {
+    return {
+      name: "Unknown buff " + buffId,
+      icon: "/assets/missing.png"
+    };
+  }
+  return buff;
 }

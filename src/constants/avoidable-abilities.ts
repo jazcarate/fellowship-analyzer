@@ -19,7 +19,7 @@ export const AVOIDABLE_ABILITIES: Record<number, AvoidableAbility> = {
   205: { id: 205, name: 'Glacial Sunder' },
   279: { id: 279, name: 'Eye Of Ulmorgat' },
   830: { id: 830, name: 'Armaggedon' },
-  59: { id: 59, name: 'Grip', note: 'Stay <15m' },
+  59: { id: 59, name: 'Grip', note: 'Stay closer than 15m of the Mancatchers' },
   546: { id: 546, name: 'Salted Blade', note: 'Stack in melee' },
   275: { id: 275, name: 'Backstab', note: 'Reposition to not give your back to Nightmist Cutthroat' },
   527: { id: 527, name: 'Sunken Gale' },
