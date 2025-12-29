@@ -9,6 +9,7 @@ import { RimeInsights } from '../heroes/rime';
 import { DeathInsight } from '../components/insights/death';
 import { AvoidableDamageInsight } from '../components/insights/avoidable-damage';
 import { PlaceholderInsights } from '../heroes/placeholder';
+import { InsightCard } from '../components/insight-card';
 
 interface PlayerAnalysisPageProps {
   dungeonId?: string;
@@ -112,6 +113,14 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
           gap: '20px'
         }}>
           <div>
+
+            {!player.isSelf && (<InsightCard>
+              <InsightCard.Title>Don't be toxic</InsightCard.Title>
+              <InsightCard.Description>
+                Don't use this tool to shame anyone.
+              </InsightCard.Description>
+            </InsightCard>)}
+
             <HeroComponent />
 
             <DeathInsight />

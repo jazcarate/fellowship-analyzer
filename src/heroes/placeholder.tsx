@@ -1,3 +1,4 @@
+import { InsightCard } from '../components/insight-card';
 import { useAnalysis } from '../contexts/analysis-context';
 
 export function PlaceholderInsights() {
@@ -5,16 +6,11 @@ export function PlaceholderInsights() {
   const { player } = useAnalysis();
 
   return (
-    <div style={{
-      background: 'var(--surface)',
-      padding: '40px',
-      borderRadius: '8px',
-      border: '1px solid var(--border)',
-      textAlign: 'center'
-    }}>
-      <p style={{ margin: 0, color: 'var(--text-secondary)' }}>
+    <InsightCard>
+      <InsightCard.Title>Coming Soon…</InsightCard.Title>
+      <InsightCard.Description>
         No insights available for {player.hero.name}.
-      </p>
-    </div>
+      </InsightCard.Description>
+    </InsightCard>
   );
 }
