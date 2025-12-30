@@ -37,7 +37,6 @@ export function HelenaInsights() {
         <InsightCard.Title>Damage Mitigation</InsightCard.Title>
         <InsightCard.Description>
           Tracking how well damage is being mitigated.
-          Red highlights show periods where mitigation was significantly below average, indicating missing defensive cooldowns or poor positioning.
 
           <DamageMitigationGraph />
         </InsightCard.Description>

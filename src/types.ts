@@ -8,7 +8,7 @@ export interface Hero {
   color: string;
   icon: string;
   order: number;
-  tank?: boolean;
+  tank?: true;
   interrupt?: {
     abilityId: number;
     cooldown: number;

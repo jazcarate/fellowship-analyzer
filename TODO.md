@@ -7,3 +7,4 @@
 - Suspend insights (some are costly)
 
 - text of "You died 1 time during this dungeon run.". Not "you"
+- Structure Card > Insight > Graph
