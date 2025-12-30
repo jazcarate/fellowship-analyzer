@@ -85,6 +85,7 @@ export interface AbilityActivatedEvent extends EventWithSource {
   timestamp: number; // Seconds relative to dungeon start
   type: 'ABILITY_ACTIVATED';
   abilityId: number;
+  abilityName: string;
 }
 
 export interface ResourceChangedEvent {
@@ -116,6 +117,7 @@ export interface EffectEvent extends EventWithSource {
   timestamp: number; // Seconds relative to dungeon start
   type: 'EFFECT_APPLIED' | 'EFFECT_REMOVED' | 'EFFECT_REFRESHED';
   effectId: number;
+  effectName: string;
 }
 
 export interface InterruptEvent extends EventWithSource {
@@ -162,7 +164,7 @@ export interface Dungeon {
   difficulty: number;
   modifierIds: number[];
   startTime: number; // Absolute timestamp (milliseconds) when dungeon was played
-  endTime: number | null; // Seconds relative to startTime (null if incomplete)
+  endTime: number; // Seconds relative to startTime
   completed: boolean;
   players: Player[];
   events: DungeonEvent[]; // All event timestamps are relative seconds from startTime

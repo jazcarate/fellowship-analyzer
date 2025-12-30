@@ -51,7 +51,7 @@ export function analyzeDamageTaken(
 
   const windows: DamageWindow[] = [];
   const startTime = dungeon.startTime;
-  const endTime = dungeon.endTime || Date.now();
+  const endTime = dungeon.startTime + (dungeon.endTime * 1000);
 
   let currentWindowStart = startTime;
 

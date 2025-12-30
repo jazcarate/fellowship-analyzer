@@ -1,8 +1,8 @@
 import { InsightCard } from '../components/insight-card';
 import { CooldownGraph } from '../components/graphs/cooldown-graph';
 import { ResourceGraph } from '../components/graphs/resource-graph';
-import { DamageGraph } from '../components/graphs/damage-graph';
 import { BuffUptimeGraph } from '../components/graphs/buff-uptime-graph';
+import { DamageMitigationGraph } from '../components/graphs/damage-mitigation';
 
 export function HelenaInsights() {
   return (
@@ -30,28 +30,17 @@ export function HelenaInsights() {
           Helena's success is in managing your Toughness and having high values when damage intake is high.
           Coordinate your toughness peaks with incoming damage spikes.
         </InsightCard.Description>
-        <div>
-          <div style={{
-            fontSize: '14px',
-            fontWeight: '600',
-            marginBottom: '12px',
-            color: 'var(--text-primary)'
-          }}>
-            Toughness Over Time
-          </div>
-          <ResourceGraph resourceId={3} thresholds={[25, 50, 75]} />
-        </div>
-        <div>
-          <div style={{
-            fontSize: '14px',
-            fontWeight: '600',
-            marginBottom: '12px',
-            color: 'var(--text-primary)'
-          }}>
-            Damage Intake
-          </div>
-          <DamageGraph windowSize={1000} />
-        </div>
+        <ResourceGraph resourceId={3} thresholds={[25, 50, 75]} />
+      </InsightCard >
+
+      <InsightCard>
+        <InsightCard.Title>Damage Mitigation</InsightCard.Title>
+        <InsightCard.Description>
+          Tracking how well damage is being mitigated.
+          Red highlights show periods where mitigation was significantly below average, indicating missing defensive cooldowns or poor positioning.
+
+          <DamageMitigationGraph />
+        </InsightCard.Description>
       </InsightCard>
     </>
   );

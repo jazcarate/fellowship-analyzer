@@ -13,6 +13,7 @@ interface DebuffInstance {
 }
 
 interface AbilityDebuffs {
+  effectName: string;
   debuffs: DebuffInstance[];
 }
 
@@ -22,7 +23,7 @@ export function FailedDispelsInsight() {
   const debuffsByAbility = useMemo(() => {
     const debuffs: Record<number, AbilityDebuffs> = {};
     // Track active debuffs per player (players can have multiple debuffs but we track each by effect)
-    const activeDebuffs: Record<string, { effectId: number; startTime: number; targetName: string }> = {};
+    const activeDebuffs: Record<string, { effectId: number; effectName: string; startTime: number; targetName: string }> = {};
 
     // Track player's dispel usage
     let lastDispelTime: number | null = null;
@@ -42,13 +43,13 @@ export function FailedDispelsInsight() {
 
       // Track when dispellable debuffs are applied
       if (event.type === 'EFFECT_APPLIED') {
-        const ability = DISPELLABLE_ABILITIES[event.effectId];
-        if (!ability) continue;
+        if (!DISPELLABLE_ABILITIES.has(event.effectId)) continue;
 
         // Track by target + effect combination
         const key = `${event.sourceId}-${event.effectId}`;
         activeDebuffs[key] = {
           effectId: event.effectId,
+          effectName: event.effectName,
           startTime: event.timestamp,
           targetName: event.sourceName
         };
@@ -60,8 +61,7 @@ export function FailedDispelsInsight() {
         const debuff = activeDebuffs[key];
         if (!debuff) continue;
 
-        const ability = DISPELLABLE_ABILITIES[event.effectId];
-        if (!ability) continue;
+        if (!DISPELLABLE_ABILITIES.has(event.effectId)) continue;
 
         // Check if this was dispelled (look for a dispel event at the same timestamp)
         const wasDispelled = dungeon.events.some(
@@ -79,7 +79,10 @@ export function FailedDispelsInsight() {
 
         // Record the debuff
         if (!debuffs[event.effectId]) {
-          debuffs[event.effectId] = { debuffs: [] };
+          debuffs[event.effectId] = {
+            effectName: debuff.effectName,
+            debuffs: []
+          };
         }
 
         const abilityDebuffs = debuffs[event.effectId];
@@ -110,20 +113,13 @@ export function FailedDispelsInsight() {
 
   return (
     <InsightCard>
-      <InsightCard.Title>Dispellable Debuffs</InsightCard.Title>
+      <InsightCard.Title>Dispel Opportunities</InsightCard.Title>
       <InsightCard.Description>
-        Dispelling dangerous debuffs quickly prevents damage and death.
-        Fast dispels save your teammates from dangerous effects.
-        {hasDispel && (
-          <span style={{ display: 'block', marginTop: '4px', color: '#f97316' }}>
-            ⚠ Orange highlight indicates your dispel was available.
-          </span>
-        )}
+        Dangerous debuffs that should be dispelled to prevent damage and death. Orange borders show when your dispel was available but not used.
       </InsightCard.Description>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {entries.map(([effectId, { debuffs }]) => {
-          const ability = DISPELLABLE_ABILITIES[parseInt(effectId)]!;
+        {entries.map(([effectId, { effectName, debuffs }]) => {
           const failedDispels = debuffs.filter(d => !d.dispelled);
           const successfulDispels = debuffs.filter(d => d.dispelled).length;
 
@@ -143,13 +139,13 @@ export function FailedDispelsInsight() {
             >
               <div style={{ marginBottom: '8px' }}>
                 <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-                  {ability.name}
+                  {effectName}
                 </div>
                 <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                  {failedDispels.length} failed {failedDispels.length === 1 ? 'dispel' : 'dispels'}
+                  {failedDispels.length} not dispelled
                   {successfulDispels > 0 && (
-                    <span style={{ color: '#4ade80', marginLeft: '8px' }}>
-                      ({successfulDispels} dispelled ✓)
+                    <span style={{ color: '#10b981', marginLeft: '8px' }}>
+                      ({successfulDispels} dispelled successfully)
                     </span>
                   )}
                 </div>
@@ -177,11 +173,6 @@ export function FailedDispelsInsight() {
                         {' '}
                         ({duration.toFixed(1)}s)
                       </span>
-                      {debuff.dispelAvailable && (
-                        <span style={{ marginLeft: '4px', color: '#f97316', fontWeight: '600' }}>
-                          ⚠
-                        </span>
-                      )}
                     </div>
                   );
                 })}

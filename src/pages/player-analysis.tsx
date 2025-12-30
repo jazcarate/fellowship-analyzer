@@ -10,6 +10,7 @@ import { DeathInsight } from '../components/insights/death';
 import { AvoidableDamageInsight } from '../components/insights/avoidable-damage';
 import { FailedInterruptsInsight } from '../components/insights/failed-interrupts';
 import { FailedDispelsInsight } from '../components/insights/failed-dispels';
+import { AlwaysBeCastingInsight } from '../components/insights/always-be-casting';
 import { PlaceholderInsights } from '../heroes/placeholder';
 import { InsightCard } from '../components/insight-card';
 
@@ -41,7 +42,7 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
   const heroColor = player.hero.color;
   const [hoveredTime, setHoveredTime] = useState<number | null>(null);
 
-  const dungeonDuration = dungeon.endTime || 0;
+  const dungeonDuration = dungeon.endTime;
 
   const contextValue = {
     dungeon,
@@ -126,6 +127,8 @@ export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnal
             <DeathInsight />
 
             <AvoidableDamageInsight />
+
+            <AlwaysBeCastingInsight />
 
             {player.hero.interrupt && <FailedInterruptsInsight />}
 

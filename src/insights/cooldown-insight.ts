@@ -59,7 +59,7 @@ export function analyzeCooldown(
 
   const timeline: CooldownWindow[] = [];
   const dungeonStart = dungeon.startTime;
-  const dungeonEnd = dungeon.endTime || Date.now();
+  const dungeonEnd = dungeon.startTime + (dungeon.endTime * 1000);
   const dungeonDuration = (dungeonEnd - dungeonStart) / 1000;
 
   if (usages.length === 0) {

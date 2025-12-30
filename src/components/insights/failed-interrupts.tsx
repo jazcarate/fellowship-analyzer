@@ -15,6 +15,7 @@ interface CastInstance {
 }
 
 interface AbilityCasts {
+  abilityName: string;
   casts: CastInstance[];
 }
 
@@ -23,7 +24,7 @@ export function FailedInterruptsInsight() {
 
   const castsByAbility = useMemo(() => {
     const casts: Record<number, AbilityCasts> = {};
-    const activeCasts: Record<string, { abilityId: number; startTime: number; damage: number }> = {};
+    const activeCasts: Record<string, { abilityId: number; abilityName: string; startTime: number; damage: number }> = {};
 
     let lastInterruptTime: number | null = null;
     const interruptAbilityId = player.hero.interrupt!.abilityId;
@@ -39,12 +40,12 @@ export function FailedInterruptsInsight() {
       }
 
       if (event.type === 'ABILITY_ACTIVATED') {
-        const ability = INTERRUPTIBLE_ABILITIES[event.abilityId];
-        if (!ability) continue;
+        if (!INTERRUPTIBLE_ABILITIES.has(event.abilityId)) continue;
 
         // Start tracking this cast
         activeCasts[event.sourceId] = {
           abilityId: event.abilityId,
+          abilityName: event.abilityName,
           startTime: event.timestamp,
           damage: 0
         };
@@ -65,7 +66,10 @@ export function FailedInterruptsInsight() {
 
         // Record the completed cast
         if (!casts[cast.abilityId]) {
-          casts[cast.abilityId] = { casts: [] };
+          casts[cast.abilityId] = {
+            abilityName: cast.abilityName,
+            casts: []
+          };
         }
 
         const abilityCasts = casts[cast.abilityId];
@@ -95,28 +99,21 @@ export function FailedInterruptsInsight() {
 
   return (
     <InsightCard>
-      <InsightCard.Title>Interruptible Casts</InsightCard.Title>
+      <InsightCard.Title>Interrupt Opportunities</InsightCard.Title>
       <InsightCard.Description>
-        Interrupting enemy casts prevents significant damage and dangerous effects.
-        Interrupts save the team from taking unnecessary damage.
-        <span style={{ display: 'block', marginTop: '4px', color: '#f97316' }}>
-          ⚠ Orange highlight indicates the interrupt skill was available.
-        </span>
-        <span style={{ display: 'block', marginTop: '4px', color: '#4ade80' }}>
-          ✓ Green background indicates the cast was interrupted (but still dealt damage).
-        </span>
+        Enemy casts that should be interrupted to prevent damage. Orange borders show when your interrupt was available but not used. Green borders show casts that were interrupted but still dealt some damage before completion.
       </InsightCard.Description>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {entries.map(([abilityId, { casts }]) => {
-          const ability = INTERRUPTIBLE_ABILITIES[parseInt(abilityId)]!;
-          const damagingCasts = casts.filter(c => c.damage > 0);
-          const failedCasts = damagingCasts.filter(c => !c.interrupted);
-          const interruptedWithDamage = damagingCasts.filter(c => c.interrupted);
-          const totalDamage = damagingCasts.reduce((sum, c) => sum + c.damage, 0);
+        {entries.map(([abilityId, { abilityName, casts }]) => {
+          // Show casts that either completed OR dealt damage (even if interrupted)
+          const relevantCasts = casts.filter(c => !c.interrupted || c.damage > 0);
+          const completedCasts = relevantCasts.filter(c => !c.interrupted);
+          const interruptedWithDamage = relevantCasts.filter(c => c.interrupted && c.damage > 0);
+          const totalDamage = relevantCasts.reduce((sum, c) => sum + c.damage, 0);
           const cleanInterrupts = casts.filter(c => c.interrupted && c.damage === 0).length;
 
-          if (damagingCasts.length === 0) {
+          if (relevantCasts.length === 0) {
             return null;
           }
 
@@ -132,31 +129,35 @@ export function FailedInterruptsInsight() {
             >
               <div style={{ marginBottom: '8px' }}>
                 <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-                  {ability.name}
+                  {abilityName}
                 </div>
                 <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                  Total: <DamageNumber damage={totalDamage} /> damage across{' '}
-                  {damagingCasts.length} {damagingCasts.length === 1 ? 'cast' : 'casts'}
-                  {failedCasts.length > 0 && (
-                    <span style={{ color: '#ef4444', marginLeft: '8px' }}>
-                      ({failedCasts.length} failed)
+                  <DamageNumber damage={totalDamage} /> damage from {relevantCasts.length} {relevantCasts.length === 1 ? 'cast' : 'casts'}
+                  {completedCasts.length > 0 && interruptedWithDamage.length > 0 && (
+                    <span style={{ marginLeft: '8px' }}>
+                      ({completedCasts.length} not interrupted, {interruptedWithDamage.length} interrupted late)
                     </span>
                   )}
-                  {interruptedWithDamage.length > 0 && (
-                    <span style={{ color: '#4ade80', marginLeft: '8px' }}>
-                      ({interruptedWithDamage.length} interrupted ⚡)
+                  {completedCasts.length > 0 && interruptedWithDamage.length === 0 && (
+                    <span style={{ marginLeft: '8px' }}>
+                      ({completedCasts.length} not interrupted)
+                    </span>
+                  )}
+                  {completedCasts.length === 0 && interruptedWithDamage.length > 0 && (
+                    <span style={{ marginLeft: '8px' }}>
+                      ({interruptedWithDamage.length} interrupted late)
                     </span>
                   )}
                   {cleanInterrupts > 0 && (
                     <span style={{ color: '#10b981', marginLeft: '8px' }}>
-                      ({cleanInterrupts} clean ✓)
+                      ({cleanInterrupts} interrupted successfully)
                     </span>
                   )}
                 </div>
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
-                {damagingCasts.map((cast, idx) => {
+                {relevantCasts.map((cast, idx) => {
                   const duration = cast.endTime - cast.startTime;
 
                   // Determine styling based on interrupt status
@@ -197,16 +198,6 @@ export function FailedInterruptsInsight() {
                         {' '}
                         ({duration.toFixed(1)}s)
                       </span>
-                      {cast.interrupted && (
-                        <span style={{ marginLeft: '4px', color: '#4ade80', fontWeight: '600' }}>
-                          ⚡
-                        </span>
-                      )}
-                      {!cast.interrupted && cast.interruptAvailable && (
-                        <span style={{ marginLeft: '4px', color: '#f97316', fontWeight: '600' }}>
-                          ⚠
-                        </span>
-                      )}
                     </div>
                   );
                 })}

@@ -148,7 +148,11 @@ export function parseLog(logText: string): Dungeon[] {
   function handleZoneChange(timestamp: number, params: string[]): void {
     // 2025-12-16T20:35:52.561+01:00|ZONE_CHANGE|"The Stronghold"|17|1|
     if (currentDungeon && !currentDungeon.completed && currentDungeon.startTime !== -1) {
-      currentDungeon.endTime = (timestamp - currentDungeon.startTime) / 1000;
+      // Set endTime to either the last event timestamp or the zone change time
+      const lastEventTime = currentDungeon.events.length > 0
+        ? currentDungeon.events[currentDungeon.events.length - 1]!.timestamp
+        : (timestamp - currentDungeon.startTime) / 1000;
+      currentDungeon.endTime = Math.max(lastEventTime, (timestamp - currentDungeon.startTime) / 1000);
     }
 
     const dungeonName = parseString(params[2]!);
@@ -168,7 +172,7 @@ export function parseLog(logText: string): Dungeon[] {
       difficulty,
       modifierIds: [],
       startTime: -1,
-      endTime: null,
+      endTime: 0,
       completed: false,
       players: [],
       events: [],
@@ -232,6 +236,7 @@ export function parseLog(logText: string): Dungeon[] {
     const sourceName = parseString(params[3]!);
 
     const abilityId = parseInt(params[4]!);
+    const abilityName = parseString(params[5]!);
     const y = parseFloat(params[12]!);
     const x = parseFloat(params[13]!);
 
@@ -239,6 +244,7 @@ export function parseLog(logText: string): Dungeon[] {
       timestamp,
       type: 'ABILITY_ACTIVATED',
       abilityId,
+      abilityName,
       sourceId,
       sourceName,
       sourcePosition: { x, y }
@@ -283,6 +289,7 @@ export function parseLog(logText: string): Dungeon[] {
     const sourceId = params[2]!;
     const sourceName = parseString(params[3]!);
     const effectId = parseInt(params[6]!);
+    const effectName = parseString(params[7]!);
     const y = parseFloat(params[14]!);
     const x = parseFloat(params[15]!);
 
@@ -290,6 +297,7 @@ export function parseLog(logText: string): Dungeon[] {
       timestamp,
       type,
       effectId,
+      effectName,
       sourceId,
       sourceName,
       sourcePosition: { x, y }
@@ -423,6 +431,12 @@ export function parseLog(logText: string): Dungeon[] {
 
   if (buffer.trim()) {
     processLine(buffer);
+  }
+
+  // Finalize any incomplete dungeon by setting endTime to the last event timestamp
+  if (currentDungeon && currentDungeon.startTime !== -1 && currentDungeon.events.length > 0) {
+    const lastEventTime = currentDungeon.events[currentDungeon.events.length - 1]!.timestamp;
+    currentDungeon.endTime = Math.max(currentDungeon.endTime, lastEventTime);
   }
 
   return dungeons;

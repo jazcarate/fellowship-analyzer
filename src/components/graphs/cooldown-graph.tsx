@@ -3,6 +3,7 @@ import { useAnalysis } from '../../contexts/analysis-context';
 import { getAbility } from '../../constants/heroes';
 import { Time } from '../time';
 import { Information } from '../information';
+import { DungeonGraph } from './dungeon-graph';
 
 interface CooldownGraphProps {
   abilityId: number;
@@ -93,187 +94,15 @@ export function CooldownGraph({ abilityId }: CooldownGraphProps) {
         </div>
       </div>
 
-      {/* Timeline */}
-      <div style={{ marginBottom: '15px' }}>
-        <div
-          style={{
-            position: 'relative',
-            height: '60px',
-            background: 'var(--offwhite-color)',
-            borderRadius: '4px',
-            overflow: 'hidden',
-            cursor: 'pointer'
-          }}
-          onMouseMove={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const timePercent = x / rect.width;
-            setHoveredTime(timePercent * dungeonDuration);
-          }}
-        >
-          {/* Cooldown windows */}
-          {usages.map((usage, idx) => {
-            const startPercent = (usage.relativeTime / dungeonDuration) * 100;
-            const windowEnd = Math.min(usage.relativeTime + cooldown, dungeonDuration);
-            const widthPercent = ((windowEnd - usage.relativeTime) / dungeonDuration) * 100;
+      <DungeonGraph highlights={[
+        { name: "Used", showPill: true, color: 'purple', times: usages.map(u => ({ start: u.relativeTime })) },
+        { name: "On Cooldown", color: '#fbbf24', times: usages.map(u => ({ start: u.relativeTime, end: u.relativeTime + cooldown })) },
+        {
+          name: "Wasted", color: '#ef4444', times: wastedOpportunities.map(w => ({ start: w, end: w + cooldown })),
+          information: 'This ability could have been used at any point during these windows, and it would still have been available for the next time it was actually used.'
+        },
 
-            return (
-              <div
-                key={idx}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: `${startPercent}%`,
-                  width: `${widthPercent}%`,
-                  height: '100%',
-                  background: '#fbbf24',
-                  opacity: 0.4
-                }}
-              />
-            );
-          })}
-
-          {/* Wasted cooldown windows */}
-          {wastedOpportunities.map((wastedTime, idx) => {
-            const startPercent = (wastedTime / dungeonDuration) * 100;
-            const windowEnd = Math.min(wastedTime + cooldown, dungeonDuration);
-            const widthPercent = ((windowEnd - wastedTime) / dungeonDuration) * 100;
-
-            return (
-              <div
-                key={`wasted-${idx}`}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: `${startPercent}%`,
-                  width: `${widthPercent}%`,
-                  height: '100%',
-                  background: '#ef4444',
-                  opacity: 0.4
-                }}
-              />
-            );
-          })}
-
-          {/* Usage markers */}
-          {usages.map((usage, idx) => {
-            const leftPercent = (usage.relativeTime / dungeonDuration) * 100;
-
-            return (
-              <div
-                key={idx}
-                style={{
-                  position: 'absolute',
-                  left: `${leftPercent}%`,
-                  top: 0,
-                  bottom: 0,
-                  width: '3px',
-                  background: 'var(--highlight-color)',
-                  pointerEvents: 'none',
-                  zIndex: 1
-                }}
-                title={`${Math.floor(usage.relativeTime)}s`}
-              />
-            );
-          })}
-
-          {/* Hover indicator */}
-          {hoveredTime !== null && (
-            <div
-              style={{
-                position: 'absolute',
-                left: `${(hoveredTime / dungeonDuration) * 100}%`,
-                top: 0,
-                bottom: 0,
-                width: '2px',
-                background: 'var(--secondary-color)',
-                pointerEvents: 'none',
-                zIndex: 10
-              }}
-            />
-          )}
-        </div>
-
-        {/* Legend */}
-        <div style={{
-          display: 'flex',
-          gap: '15px',
-          justifyContent: 'center',
-          marginTop: '10px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '12px',
-              height: '12px',
-              background: 'var(--highlight-color)',
-              borderRadius: '2px'
-            }} />
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Used</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '12px',
-              height: '12px',
-              background: '#fbbf24',
-              borderRadius: '2px'
-            }} />
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>On Cooldown</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', position: 'relative' }}>
-            <div style={{
-              width: '12px',
-              height: '12px',
-              background: 'var(--error)',
-              borderRadius: '2px'
-            }} />
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Wasted</span>
-            <Information title='This ability could have been used at any point during these windows, and it would still have been available for the next time it was actually used.' />
-          </div>
-        </div>
-      </div>
-
-      {usages.length > 0 && (
-        <div>
-          <div style={{
-            fontSize: '13px',
-            fontWeight: '600',
-            marginBottom: '8px',
-            color: 'var(--text-primary)'
-          }}>
-            Uses:
-          </div>
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '6px'
-          }}>
-            {usages.map((usage, idx) => (
-              <span
-                key={idx}
-                style={{
-                  padding: '4px 8px',
-                  background: '#ffe8cc',
-                  color: 'var(--highlight-color)',
-                  borderRadius: '4px',
-                  fontSize: '11px',
-                  fontFamily: 'monospace',
-                  cursor: 'pointer',
-                  transition: 'transform 0.1s'
-                }}
-                onMouseEnter={(e) => {
-                  setHoveredTime(usage.relativeTime);
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0px)';
-                }}
-              >
-                <Time seconds={usage.relativeTime} />
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+      ]} />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { getBuff } from '../../constants/heroes';
 import { Time } from '../time';
+import { DungeonGraph } from './dungeon-graph';
 
 interface BuffUptimeGraphProps {
   buffId: number;
@@ -100,178 +101,11 @@ export function BuffUptimeGraph({ buffId, highlightRefresh = false }: BuffUptime
 
       {/* Timeline */}
       <div style={{ marginBottom: '15px' }}>
-        <div
-          style={{
-            position: 'relative',
-            height: '60px',
-            background: 'var(--offwhite-color)',
-            borderRadius: '4px',
-            overflow: 'hidden',
-            cursor: 'pointer'
-          }}
-          onMouseMove={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const timePercent = x / rect.width;
-            setHoveredTime(timePercent * dungeonDuration);
-          }}
-        >
-          {/* Active buff periods */}
-          {periods.map((period, idx) => {
-            const startPercent = (period.start / dungeonDuration) * 100;
-            const widthPercent = ((period.end - period.start) / dungeonDuration) * 100;
-
-            return (
-              <div
-                key={idx}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: `${startPercent}%`,
-                  width: `${widthPercent}%`,
-                  height: '100%',
-                  background: '#22c55e',
-                  opacity: 0.6
-                }}
-              />
-            );
-          })}
-
-          {/* Period start markers */}
-          {periods.map((period, idx) => (
-            <div
-              key={`start-${idx}`}
-              style={{
-                position: 'absolute',
-                left: `${(period.start / dungeonDuration) * 100}%`,
-                top: 0,
-                bottom: 0,
-                width: '2px',
-                background: '#16a34a',
-                pointerEvents: 'none',
-                zIndex: 1
-              }}
-            />
-          ))}
-
-          {/* Refresh markers */}
-          {highlightRefresh && refreshTimes.map((refreshTime, idx) => (
-            <div
-              key={`refresh-${idx}`}
-              style={{
-                position: 'absolute',
-                left: `${(refreshTime / dungeonDuration) * 100}%`,
-                top: 0,
-                bottom: 0,
-                width: '3px',
-                background: '#3b82f6',
-                pointerEvents: 'none',
-                zIndex: 2
-              }}
-            />
-          ))}
-
-          {/* Hover indicator */}
-          {hoveredTime !== null && (
-            <div
-              style={{
-                position: 'absolute',
-                left: `${(hoveredTime / dungeonDuration) * 100}%`,
-                top: 0,
-                bottom: 0,
-                width: '2px',
-                background: 'var(--secondary-color)',
-                pointerEvents: 'none',
-                zIndex: 10
-              }}
-            />
-          )}
-        </div>
-
-        {/* Legend */}
-        <div style={{
-          display: 'flex',
-          gap: '15px',
-          justifyContent: 'center',
-          marginTop: '10px'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '12px',
-              height: '12px',
-              background: '#22c55e',
-              borderRadius: '2px'
-            }} />
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Buff Active</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{
-              width: '12px',
-              height: '12px',
-              background: 'var(--offwhite-color)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '2px'
-            }} />
-            <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Buff Inactive</span>
-          </div>
-          {highlightRefresh && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{
-                width: '12px',
-                height: '12px',
-                background: '#3b82f6',
-                borderRadius: '2px'
-              }} />
-              <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Refreshed</span>
-            </div>
-          )}
-        </div>
+        <DungeonGraph highlights={[
+          { name: "Buff active", color: '#22c55e', times: periods },
+          { name: "Refreshed", showPill: true, color: '#3b82f6', times: refreshTimes.map(start => ({ start })) }
+        ]} />
       </div>
-
-      {highlightRefresh && (
-        refreshTimes.length > 0 && (
-          <div>
-            <div style={{
-              fontSize: '13px',
-              fontWeight: '600',
-              marginBottom: '8px',
-              color: 'var(--text-primary)'
-            }}>
-              Refresh Times:
-            </div>
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '6px'
-            }}>
-              {refreshTimes.map((refreshTime, idx) => (
-                <span
-                  key={idx}
-                  style={{
-                    padding: '4px 8px',
-                    background: '#dbeafe',
-                    color: '#3b82f6',
-                    borderRadius: '4px',
-                    fontSize: '11px',
-                    fontFamily: 'monospace',
-                    cursor: 'pointer',
-                    transition: 'transform 0.1s'
-                  }}
-                  onMouseEnter={(e) => {
-                    setHoveredTime(refreshTime);
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0px)';
-                  }}
-                >
-                  <Time seconds={refreshTime} />
-                </span>
-              ))}
-            </div>
-          </div>
-        )
-      )}
     </div>
   );
 }

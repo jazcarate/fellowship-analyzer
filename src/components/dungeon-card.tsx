@@ -8,7 +8,7 @@ interface DungeonCardProps {
 }
 
 export function DungeonCard({ dungeon }: DungeonCardProps) {
-  const duration = dungeon.endTime || 0;
+  const duration = dungeon.endTime;
   const { route } = useLocation();
 
   return (
