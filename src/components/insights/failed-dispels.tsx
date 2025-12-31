@@ -3,6 +3,8 @@ import { DISPELLABLE_ABILITIES } from '../../constants/dispellable-abilities';
 import { Time } from '../time';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { InsightCard } from '../insight-card';
+import { DungeonGraph } from '../graphs/dungeon-graph';
+import { trackEffects } from '../../utils/effect-tracker';
 
 interface DebuffInstance {
   startTime: number;
@@ -10,6 +12,7 @@ interface DebuffInstance {
   dispelled: boolean;
   targetName: string;
   dispelAvailable: boolean;
+  damageDealt: number;
 }
 
 interface AbilityDebuffs {
@@ -20,110 +23,93 @@ interface AbilityDebuffs {
 export function FailedDispelsInsight() {
   const { dungeon, player, setHoveredTime } = useAnalysis();
 
-  const debuffsByAbility = useMemo(() => {
+  const { debuffsByAbility, dispelTimes, problematicEffectTimes } = useMemo(() => {
+    const { completedEffects } = trackEffects(dungeon, player);
+
     const debuffs: Record<number, AbilityDebuffs> = {};
-    // Track active debuffs per player (players can have multiple debuffs but we track each by effect)
-    const activeDebuffs: Record<string, { effectId: number; effectName: string; startTime: number; targetName: string }> = {};
+    const dispelTimes: number[] = [];
+    const problematicEffectTimes: { start: number; end: number }[] = [];
 
-    // Track player's dispel usage
-    let lastDispelTime: number | null = null;
-    const dispelAbilityId = player.hero.dispel?.abilityId;
-    const dispelCooldown = player.hero.dispel?.cooldown || 0;
+    for (const effect of completedEffects) {
+      if (!DISPELLABLE_ABILITIES.has(effect.effectId)) continue;
+      if (effect.effectType !== 'DEBUFF') continue;
+      if (effect.endTime === null) continue;
 
-    for (const event of dungeon.events) {
-      // Track when player uses their dispel
-      if (
-        event.type === 'ABILITY_ACTIVATED' &&
-        event.sourceId === player.playerId &&
-        dispelAbilityId &&
-        event.abilityId === dispelAbilityId
-      ) {
-        lastDispelTime = event.timestamp;
+      const isProblematic = !effect.dispelled || effect.damageDealt > 0;
+
+      if (isProblematic) {
+        problematicEffectTimes.push({
+          start: effect.startTime,
+          end: effect.endTime
+        });
       }
 
-      // Track when dispellable debuffs are applied
-      if (event.type === 'EFFECT_APPLIED') {
-        if (!DISPELLABLE_ABILITIES.has(event.effectId)) continue;
-
-        // Track by target + effect combination
-        const key = `${event.sourceId}-${event.effectId}`;
-        activeDebuffs[key] = {
-          effectId: event.effectId,
-          effectName: event.effectName,
-          startTime: event.timestamp,
-          targetName: event.sourceName
+      if (!debuffs[effect.effectId]) {
+        debuffs[effect.effectId] = {
+          effectName: effect.effectName,
+          debuffs: []
         };
       }
 
-      // Track when debuffs are removed (either by dispel or naturally)
-      if (event.type === 'EFFECT_REMOVED') {
-        const key = `${event.sourceId}-${event.effectId}`;
-        const debuff = activeDebuffs[key];
-        if (!debuff) continue;
+      debuffs[effect.effectId]!.debuffs.push({
+        startTime: effect.startTime,
+        endTime: effect.endTime,
+        dispelled: effect.dispelled,
+        targetName: effect.targetName,
+        dispelAvailable: effect.dispelAvailable,
+        damageDealt: effect.damageDealt
+      });
+    }
 
-        if (!DISPELLABLE_ABILITIES.has(event.effectId)) continue;
-
-        // Check if this was dispelled (look for a dispel event at the same timestamp)
-        const wasDispelled = dungeon.events.some(
-          e =>
-            e.type === 'ABILITY_DISPEL' &&
-            e.effectId === event.effectId &&
-            e.targetId === event.sourceId &&
-            e.timestamp === event.timestamp
-        );
-
-        // Check if dispel was available at debuff start
-        const dispelAvailable =
-          dispelAbilityId !== undefined &&
-          (lastDispelTime === null || debuff.startTime - lastDispelTime >= dispelCooldown);
-
-        // Record the debuff
-        if (!debuffs[event.effectId]) {
-          debuffs[event.effectId] = {
-            effectName: debuff.effectName,
-            debuffs: []
-          };
-        }
-
-        const abilityDebuffs = debuffs[event.effectId];
-        if (abilityDebuffs) {
-          abilityDebuffs.debuffs.push({
-            startTime: debuff.startTime,
-            endTime: event.timestamp,
-            dispelled: wasDispelled,
-            targetName: debuff.targetName,
-            dispelAvailable
-          });
-        }
-
-        // Clear the active debuff
-        delete activeDebuffs[key];
+    for (const event of dungeon.events) {
+      if (
+        event.type === 'ABILITY_ACTIVATED' &&
+        event.sourceId === player.playerId &&
+        player.hero.dispel?.abilityId &&
+        event.abilityId === player.hero.dispel.abilityId
+      ) {
+        dispelTimes.push(event.timestamp);
       }
     }
 
-    return debuffs;
-  }, [dungeon.events, player.playerId, player.hero.dispel]);
+    return { debuffsByAbility: debuffs, dispelTimes, problematicEffectTimes };
+  }, [dungeon, player]);
 
   const entries = Object.entries(debuffsByAbility);
   if (entries.length === 0) {
     return null;
   }
 
-  const hasDispel = player.hero.dispel !== undefined;
-
   return (
     <InsightCard>
       <InsightCard.Title>Dispel Opportunities</InsightCard.Title>
       <InsightCard.Description>
-        Dangerous debuffs that should be dispelled to prevent damage and death. Orange borders show when your dispel was available but not used.
+        Dangerous debuffs that should be dispelled to prevent damage and death. Orange borders show when dispel was available but not used. Red text indicates damage was taken.
       </InsightCard.Description>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {entries.map(([effectId, { effectName, debuffs }]) => {
-          const failedDispels = debuffs.filter(d => !d.dispelled);
-          const successfulDispels = debuffs.filter(d => d.dispelled).length;
+      <div style={{ marginTop: '16px' }}>
+        <DungeonGraph
+          highlights={[
+            {
+              name: 'Dispels',
+              color: '#10b981',
+              times: dispelTimes.map(time => ({ start: time }))
+            },
+            {
+              name: 'Problematic Effects',
+              color: '#dc2626',
+              times: problematicEffectTimes
+            }
+          ]}
+        />
+      </div>
 
-          if (failedDispels.length === 0) {
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
+        {entries.map(([effectId, { effectName, debuffs }]) => {
+          const problematicDebuffs = debuffs.filter(d => !d.dispelled || d.damageDealt > 0);
+          const successfulDispels = debuffs.filter(d => d.dispelled && d.damageDealt === 0).length;
+
+          if (problematicDebuffs.length === 0) {
             return null;
           }
 
@@ -142,7 +128,7 @@ export function FailedDispelsInsight() {
                   {effectName}
                 </div>
                 <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                  {failedDispels.length} not dispelled
+                  {problematicDebuffs.length} requiring attention
                   {successfulDispels > 0 && (
                     <span style={{ color: '#10b981', marginLeft: '8px' }}>
                       ({successfulDispels} dispelled successfully)
@@ -152,7 +138,7 @@ export function FailedDispelsInsight() {
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
-                {failedDispels.map((debuff, idx) => {
+                {problematicDebuffs.map((debuff, idx) => {
                   const duration = debuff.endTime - debuff.startTime;
                   return (
                     <div
@@ -173,6 +159,11 @@ export function FailedDispelsInsight() {
                         {' '}
                         ({duration.toFixed(1)}s)
                       </span>
+                      {debuff.damageDealt > 0 && (
+                        <span style={{ color: '#dc2626', marginLeft: '4px', fontWeight: '600' }}>
+                          -{debuff.damageDealt.toLocaleString()}
+                        </span>
+                      )}
                     </div>
                   );
                 })}

@@ -10,7 +10,7 @@ interface CooldownGraphProps {
 }
 
 export function CooldownGraph({ abilityId }: CooldownGraphProps) {
-  const { dungeon, player, dungeonDuration, hoveredTime, setHoveredTime } = useAnalysis();
+  const { dungeon, player, dungeonDuration } = useAnalysis();
 
   const ability = getAbility(abilityId);
   const ultimatumReduction = dungeon.modifierIds.includes(16) ? 0.9 : 1.0;

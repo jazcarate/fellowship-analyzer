@@ -72,12 +72,16 @@ export interface EventWithSource {
   sourceId: string;
   sourcePosition: Position;
   sourceName: string;
+  sourceCurrentHP: number;
+  sourceMaxHP: number;
 }
 
 export interface EventWithTarget {
   targetId: string;
   targetName: string;
   targetPosition: Position;
+  targetCurrentHP: number;
+  targetMaxHP: number;
 }
 
 
@@ -118,12 +122,17 @@ export interface EffectEvent extends EventWithSource {
   type: 'EFFECT_APPLIED' | 'EFFECT_REMOVED' | 'EFFECT_REFRESHED';
   effectId: number;
   effectName: string;
+  effectType: 'BUFF' | 'DEBUFF';
 }
 
-export interface InterruptEvent extends EventWithSource {
+export interface InterruptEvent {
   timestamp: number; // Seconds relative to dungeon start
   type: 'ABILITY_INTERRUPT';
   abilityId: number;
+  sourceId: string;
+  sourceName: string;
+  targetId: string;
+  targetName: string;
 }
 
 export interface CastSuccessfulEvent extends EventWithSource {
@@ -132,8 +141,12 @@ export interface CastSuccessfulEvent extends EventWithSource {
   abilityId: number;
 }
 
-export interface DispelEvent extends EventWithSource, EventWithTarget {
+export interface DispelEvent {
   timestamp: number; // Seconds relative to dungeon start
+  sourceId: string;
+  sourceName: string;
+  targetId: string;
+  targetName: string;
   type: 'ABILITY_DISPEL';
   abilityId: number;
   effectId: number;

@@ -6,7 +6,7 @@ import fs from 'fs';
 let filters = [];
 /** @type {string[]} */
 let columnSyntax = [];
-let showLineNumbers = false;
+let showLineNumbers;
 let contextBefore = 0;
 let contextAfter = 0;
 
@@ -107,7 +107,7 @@ function parseColumnSyntax(syntax, maxCols) {
  */
 function calculateColumnWidths(lineParts) {
   const MIN_COLUMN_WIDTH = 3;
-  const maxColumns = Math.max(...lineParts.map(({ parts }) => parts.length));
+  const maxColumns = Math.max(0, ...lineParts.map(({ parts }) => parts.length));
   const widths = Array(maxColumns).fill(MIN_COLUMN_WIDTH);
 
   for (const { parts } of lineParts) {
@@ -217,6 +217,8 @@ for (let i = 0; i < args.length; i++) {
   const arg = args[i];
   if (arg === '--in-place' || arg === '-i') {
     inPlace = true;
+  } else if (arg === '--no-line-number') {
+    showLineNumbers = false;
   } else if (arg === '--filter' || arg === '-f') {
     filters.push(args[++i]);
   } else if (arg === '--columns' || arg === '-c') {
@@ -233,7 +235,7 @@ for (let i = 0; i < args.length; i++) {
     filePath = arg;
   }
 }
-showLineNumbers = !inPlace;
+showLineNumbers = showLineNumbers ?? !inPlace;
 
 if (filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');

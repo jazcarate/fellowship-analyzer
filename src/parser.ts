@@ -6,7 +6,6 @@ import type {
   AllyDeathEvent,
   EffectEvent,
   DispelEvent,
-  CastEvent,
   DungeonEvent,
   Dungeon,
   InterruptEvent,
@@ -240,6 +239,9 @@ export function parseLog(logText: string): Dungeon[] {
     const y = parseFloat(params[12]!);
     const x = parseFloat(params[13]!);
 
+    const sourceCurrentHP = parseInt(params[10]!);;
+    const sourceMaxHP = parseInt(params[11]!);
+
     return {
       timestamp,
       type: 'ABILITY_ACTIVATED',
@@ -247,7 +249,9 @@ export function parseLog(logText: string): Dungeon[] {
       abilityName,
       sourceId,
       sourceName,
-      sourcePosition: { x, y }
+      sourcePosition: { x, y },
+      sourceCurrentHP,
+      sourceMaxHP
     };
   }
 
@@ -286,21 +290,30 @@ export function parseLog(logText: string): Dungeon[] {
     // 2025-12-26T20:23:24.245+01:00|EFFECT_APPLIED  |Player-2225604656|".Florius"|Player-2225604656|".Florius"|1282|"Shields Up"|12.000000|1|BUFF|110094|213045|0|-7814.015625|8213.390625|3.830060|[]|984|"Shields Up"|0
     // 2025-12-26T20:24:30.819+01:00|EFFECT_REFRESHED|Player-2225604656|".Florius"|Player-2225604656|".Florius"|1282|"Shields Up"|12.000000|1|BUFF|111024|213045|0|742.546875  |3411.359375|5.126935|[]|984|"Shields Up"|0|Player-2225604656|".Florius"
 
-    const sourceId = params[2]!;
-    const sourceName = parseString(params[3]!);
+    // Target is the one that _has_ the event
+    const sourceId = params[4]!;
+    const sourceName = parseString(params[5]!);
     const effectId = parseInt(params[6]!);
     const effectName = parseString(params[7]!);
-    const y = parseFloat(params[14]!);
-    const x = parseFloat(params[15]!);
+    const effectType = params[10]! as 'BUFF' | 'DEBUFF';
+
+    const sourceCurrentHP = parseInt(params[11]!);
+    const sourceMaxHP = parseInt(params[12]!);
+
+    const sourceY = parseFloat(params[14]!);
+    const sourceX = parseFloat(params[15]!);
 
     return {
       timestamp,
       type,
       effectId,
       effectName,
+      effectType,
       sourceId,
       sourceName,
-      sourcePosition: { x, y }
+      sourcePosition: { x: sourceX, y: sourceY },
+      sourceCurrentHP,
+      sourceMaxHP,
     };
   }
 
@@ -313,10 +326,6 @@ export function parseLog(logText: string): Dungeon[] {
     const targetName = parseString(params[5]!);
     const abilityId = parseInt(params[6]!);
     const effectId = parseInt(params[8]!);
-    const sourceY = parseFloat(params[14]!);
-    const sourceX = parseFloat(params[15]!);
-    const targetY = parseFloat(params[21]!);
-    const targetX = parseFloat(params[22]!);
 
     return {
       timestamp,
@@ -326,19 +335,17 @@ export function parseLog(logText: string): Dungeon[] {
       targetId,
       targetName,
       abilityId,
-      effectId,
-      sourcePosition: { x: sourceX, y: sourceY },
-      targetPosition: { x: targetX, y: targetY }
+      effectId
     };
   }
 
   function parseInterruptEvent(timestamp: number, type: 'ABILITY_INTERRUPT', params: string[]): InterruptEvent {
     // 2025-12-26T16:16:13.436+01:00|ABILITY_INTERRUPT|Player-2426405616|".Florius"|Npc-3611820096-163|"Deceitful Scholar"|976|"Bash"|730|"Rune of Detonation"
-    const sourceId = params[4]!;
-    const sourceName = parseString(params[5]!);
+    const sourceId = params[2]!;
+    const sourceName = parseString(params[3]!);
+    const targetId = params[4]!;
+    const targetName = parseString(params[5]!);
     const abilityId = parseInt(params[8]!);
-    const y = parseFloat(params[14]!);
-    const x = parseFloat(params[15]!);
 
     return {
       timestamp,
@@ -346,7 +353,8 @@ export function parseLog(logText: string): Dungeon[] {
       abilityId,
       sourceId,
       sourceName,
-      sourcePosition: { x, y }
+      targetId,
+      targetName
     };
   }
 
@@ -358,13 +366,18 @@ export function parseLog(logText: string): Dungeon[] {
     const y = parseFloat(params[12]!);
     const x = parseFloat(params[13]!);
 
+    const sourceCurrentHP = parseInt(params[9]!);
+    const sourceMaxHP = parseInt(params[10]!);
+
     return {
       timestamp,
       type,
       abilityId,
       sourceId,
       sourceName,
-      sourcePosition: { x, y }
+      sourcePosition: { x, y },
+      sourceCurrentHP,
+      sourceMaxHP
     };
   }
 
@@ -398,6 +411,11 @@ export function parseLog(logText: string): Dungeon[] {
     const sourcePosition: Position = { x: sourceX, y: sourceY };
     const targetPosition: Position = { x: targetX, y: targetY };
 
+    const sourceCurrentHP = parseInt(params[16]!);
+    const sourceMaxHP = parseInt(params[17]!);
+    const targetCurrentHP = parseInt(params[23]!);
+    const targetMaxHP = parseInt(params[24]!);
+
     const event: DamageEvent = {
       timestamp,
       type,
@@ -410,7 +428,11 @@ export function parseLog(logText: string): Dungeon[] {
       sourcePosition,
       targetPosition,
       abilityId,
-      abilityName
+      abilityName,
+      sourceCurrentHP,
+      sourceMaxHP,
+      targetCurrentHP,
+      targetMaxHP
     };
 
     return event;
@@ -434,9 +456,12 @@ export function parseLog(logText: string): Dungeon[] {
   }
 
   // Finalize any incomplete dungeon by setting endTime to the last event timestamp
-  if (currentDungeon && currentDungeon.startTime !== -1 && currentDungeon.events.length > 0) {
-    const lastEventTime = currentDungeon.events[currentDungeon.events.length - 1]!.timestamp;
-    currentDungeon.endTime = Math.max(currentDungeon.endTime, lastEventTime);
+  if (dungeons.length > 0) {
+    const finalDungeon = dungeons[dungeons.length - 1]!;
+    if (finalDungeon.startTime !== -1 && finalDungeon.events.length > 0) {
+      const lastEventTime = finalDungeon.events[finalDungeon.events.length - 1]!.timestamp;
+      finalDungeon.endTime = Math.max(finalDungeon.endTime, lastEventTime);
+    }
   }
 
   return dungeons;

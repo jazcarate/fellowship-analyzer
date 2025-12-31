@@ -2,6 +2,7 @@ import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../contexts/analysis-context';
 import { getDungeonConfig, getWorldBounds } from '../constants/maps';
 import { type Position, type Hero, hasSource, hasTarget } from '../types';
+import { trackEffects, getEffectsAtTime } from '../utils/effect-tracker';
 
 interface PlayerEntity {
   type: 'player';
@@ -9,6 +10,8 @@ interface PlayerEntity {
   name: string;
   hero: Hero;
   position: Position;
+  currentHP: number;
+  maxHP: number;
 }
 
 interface NPCEntity {
@@ -22,9 +25,14 @@ type Entity = PlayerEntity | NPCEntity;
 type SnapshotData = Record<string, Entity>;
 
 export function Minimap() {
-  const { hoveredTime, dungeon } = useAnalysis();
+  const { hoveredTime, dungeon, player } = useAnalysis();
 
   const dungeonConfig = getDungeonConfig(dungeon.dungeonId);
+
+  const allEffects = useMemo(() => {
+    const { completedEffects } = trackEffects(dungeon, player);
+    return completedEffects;
+  }, [dungeon, player]);
 
   const spatialIndex = useMemo(() => {
     const duration = dungeon.endTime ? Math.ceil(dungeon.endTime) : 0;
@@ -49,7 +57,9 @@ export function Minimap() {
             id: event.sourceId,
             name: sourcePlayer.playerName,
             hero: sourcePlayer.hero,
-            position: event.sourcePosition
+            position: event.sourcePosition,
+            currentHP: event.sourceCurrentHP,
+            maxHP: event.sourceMaxHP
           };
         } else if (event.sourceId.startsWith("Npc-")) {
           snapshot[event.sourceId] = {
@@ -69,7 +79,9 @@ export function Minimap() {
             id: event.targetId,
             name: targetPlayer.playerName,
             hero: targetPlayer.hero,
-            position: event.targetPosition
+            position: event.targetPosition,
+            currentHP: event.targetCurrentHP,
+            maxHP: event.targetMaxHP
           };
         } else if (event.targetId.startsWith("Npc-")) {
           snapshot[event.targetId] = {
@@ -111,6 +123,58 @@ export function Minimap() {
 
   const mapWidth = 350;
   const mapHeight = 350;
+
+  const TRACKED_BUFF_IDS = new Set([
+    2192, // Siegebreaker
+    1230, // Gleaming Shield
+    2229, // Empowered Shield Slam: Barrier
+    1484, // Ironleaf Ward
+    2269, // Safe Haven
+    2172  // Unyielding Bloom
+  ]);
+
+  const playerEntitiesAtTime = useMemo(() => {
+    if (!hoveredTime) return [];
+
+    return dungeon.players.map(player => {
+      const entity = currentSnapshot[player.playerId] as PlayerEntity | undefined;
+
+      const effects = getEffectsAtTime(allEffects, hoveredTime).filter(
+        effect => {
+          if (effect.targetId !== player.playerId) return false;
+          // Show all debuffs, but only specific buffs
+          if (effect.effectType === 'DEBUFF') return true;
+          return TRACKED_BUFF_IDS.has(effect.effectId);
+        }
+      );
+
+      return {
+        type: 'player' as const,
+        id: player.playerId,
+        name: player.playerName,
+        hero: player.hero,
+        position: entity?.position || { x: 0, y: 0 },
+        currentHP: entity?.currentHP || 0,
+        maxHP: entity?.maxHP || 0,
+        effects
+      };
+    });
+  }, [currentSnapshot, allEffects, hoveredTime, dungeon.players]);
+
+  const npcCountsAtTime = useMemo(() => {
+    if (!hoveredTime) return new Map<string, number>();
+
+    const npcCounts = new Map<string, number>();
+
+    Object.values(currentSnapshot).forEach(entity => {
+      if (entity.type === 'npc') {
+        const count = npcCounts.get(entity.name) || 0;
+        npcCounts.set(entity.name, count + 1);
+      }
+    });
+
+    return npcCounts;
+  }, [currentSnapshot, hoveredTime]);
 
   return (
     <div style={{
@@ -260,6 +324,138 @@ export function Minimap() {
               );
             }
           })}
+        </div>
+      )}
+
+      {/* Player Health and Effects List */}
+      {hoveredTime !== null && playerEntitiesAtTime.length > 0 && (
+        <div style={{ marginTop: '20px' }}>
+          <h5 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600' }}>
+            Players
+          </h5>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {playerEntitiesAtTime.map(playerEntity => {
+              const hpPercent = playerEntity.maxHP > 0
+                ? (playerEntity.currentHP / playerEntity.maxHP) * 100
+                : 0;
+
+              return (
+                <div
+                  key={playerEntity.id}
+                  style={{
+                    background: 'var(--offwhite-color)',
+                    padding: '8px 12px',
+                    borderRadius: '6px',
+                    border: '1px solid #e0e0e0'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    {playerEntity.hero.icon && (
+                      <img
+                        src={playerEntity.hero.icon}
+                        alt={playerEntity.hero.name}
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          border: `2px solid ${playerEntity.hero.color}`
+                        }}
+                      />
+                    )}
+                    <span style={{ fontSize: '13px', fontWeight: '600', flex: 1 }}>
+                      {playerEntity.name}
+                    </span>
+                    {playerEntity.maxHP > 0 && (
+                      <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                        {Math.round(hpPercent)}%
+                      </span>
+                    )}
+                  </div>
+
+                  {playerEntity.maxHP > 0 && (
+                    <div style={{
+                      background: '#ddd',
+                      height: '4px',
+                      borderRadius: '2px',
+                      overflow: 'hidden',
+                      marginBottom: '6px'
+                    }}>
+                      <div style={{
+                        background: hpPercent > 50 ? '#10b981' : hpPercent > 25 ? '#f59e0b' : '#ef4444',
+                        height: '100%',
+                        width: `${hpPercent}%`,
+                        transition: 'width 0.2s'
+                      }} />
+                    </div>
+                  )}
+
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '4px',
+                    minHeight: '20px'
+                  }}>
+                    {playerEntity.effects.map((effect, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          padding: '2px 6px',
+                          borderRadius: '3px',
+                          fontSize: '11px',
+                          background: effect.effectType === 'BUFF' ? '#d1fae5' : '#fee2e2',
+                          color: effect.effectType === 'BUFF' ? '#065f46' : '#991b1b',
+                          border: `1px solid ${effect.effectType === 'BUFF' ? '#10b981' : '#ef4444'}`,
+                          height: 'fit-content'
+                        }}
+                        title={effect.effectName}
+                      >
+                        {effect.effectType === 'BUFF' ? '↑' : '↓'} {effect.effectName}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Enemies List */}
+      {hoveredTime !== null && npcCountsAtTime.size > 0 && (
+        <div style={{ marginTop: '20px' }}>
+          <h5 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600' }}>
+            Enemies
+          </h5>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {Array.from(npcCountsAtTime.entries())
+              .sort((a, b) => b[1] - a[1]) // Sort by count descending
+              .map(([name, count]) => (
+                <div
+                  key={name}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '4px 8px',
+                    background: 'var(--offwhite-color)',
+                    borderRadius: '4px',
+                    fontSize: '12px',
+                    border: '1px solid #e0e0e0'
+                  }}
+                >
+                  <span style={{ color: 'var(--text-primary)' }}>{name}</span>
+                  <span
+                    style={{
+                      color: 'var(--text-secondary)',
+                      fontWeight: '600',
+                      fontSize: '11px'
+                    }}
+                  >
+                    ×{count}
+                  </span>
+                </div>
+              ))}
+          </div>
         </div>
       )}
     </div>
