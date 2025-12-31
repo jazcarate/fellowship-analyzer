@@ -53,6 +53,36 @@ function matchesFilter(parts, filter) {
 }
 
 /**
+ * @param {string[]} syntax e.g., ["15"], [":4"], ["3:"], ["3","4","7"], [":3","8","10"]
+ * @param {number} maxCols
+ * @returns {number[]} indices to include
+ */
+function parseColumnSyntax(syntax, maxCols) {
+  const indices = new Set();
+
+  for (const part of syntax) {
+    if (part.includes(':')) {
+      // Range syntax (e.g., "3:", ":4", "2:5")
+      const [start, end] = part.split(':');
+      const startIdx = start === '' ? 0 : parseInt(start, 10);
+      const endIdx = end === '' ? maxCols - 1 : parseInt(end, 10);
+
+      for (let i = startIdx; i <= endIdx && i < maxCols; i++) {
+        indices.add(i);
+      }
+    } else {
+      // Single column (e.g., "3", "7")
+      const idx = parseInt(part, 10);
+      if (idx < maxCols) {
+        indices.add(idx);
+      }
+    }
+  }
+
+  return Array.from(indices).sort((a, b) => a - b);
+}
+
+/**
  * Calculates the maximum width needed for each column across all rows.
  * @param {string[][]} lineParts - Array of rows, each row is an array of column values
  * @returns {number[]} Array of maximum widths per column
@@ -79,10 +109,10 @@ function calculateColumnWidths(lineParts) {
 /**
  * @param {string[]} lines
  * @param {string[]} filters
- * @param {number?} maxColumns
+ * @param {string[]} columnSyntax
  * @returns {string[]}
  */
-function formatLogLines(lines, filters, maxColumns) {
+function formatLogLines(lines, filters, columnSyntax) {
   if (lines.length === 0) return [];
 
   const lineParts = lines.map(l => l.split(SEPARATOR));
@@ -90,13 +120,24 @@ function formatLogLines(lines, filters, maxColumns) {
 
   if (filteredParts.length === 0) return [];
 
-  const limitedParts = maxColumns
-    ? filteredParts.map(parts => parts.slice(0, maxColumns))
-    : filteredParts;
+  let limitedParts;
+  const maxCols = Math.max(...filteredParts.map(p => p.length));
+  if (columnSyntax.length != 0) {
+    const columnIndices = parseColumnSyntax(columnSyntax, maxCols);
+    limitedParts = filteredParts.map(parts =>
+      columnIndices.map(i => parts[i] || '')
+    );
+  } else {
+    limitedParts = filteredParts;
+  }
 
   const widths = calculateColumnWidths(limitedParts);
 
-  const header = widths.map((width, i) => String(i).padStart(width))
+  const originalIndices = columnSyntax.length > 0
+    ? parseColumnSyntax(columnSyntax, maxCols)
+    : Array.from({ length: widths.length }, (_, i) => i);
+
+  const header = widths.map((width, i) => String(originalIndices[i]).padStart(width))
     .join(SEPARATOR);
 
   const formattedLines = limitedParts.map(parts => formatLogLine(parts, widths));
@@ -111,14 +152,17 @@ function formatLogLines(lines, filters, maxColumns) {
  *   ./format-log.js file.log --in-place               (modifies file)
  *   ./format-log.js file.log --filter magical         (filter any column containing "magical")
  *   ./format-log.js file.log --filter 3:magical       (filter column 3 containing "magical")
- *   ./format-log.js file.log --max-columns 5          (only display first 6 columns)
+ *   ./format-log.js file.log --columns 2 --columns 3  (columns 2 and 3)
+ *   ./format-log.js file.log --columns :4             (columns 0 through 4)
+ *   ./format-log.js file.log --columns 3:             (columns 3 onwards)
  */
 const args = process.argv.slice(2);
 let filePath = null;
 let inPlace = false;
 /** @type {string[]} */
 let filters = [];
-let maxColumns = null;
+/** @type {string[]} */
+let columnSyntax = [];
 
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];
@@ -126,8 +170,8 @@ for (let i = 0; i < args.length; i++) {
     inPlace = true;
   } else if (arg === '--filter' || arg === '-f') {
     filters.push(args[++i]);
-  } else if (arg === '--max-columns' || arg === '-c') {
-    maxColumns = parseInt(args[++i], 10) + 1;
+  } else if (arg === '--columns' || arg === '-c') {
+    columnSyntax = columnSyntax.concat(args[++i].split(',').map(s => s.trim()));
   } else if (!arg.startsWith('--')) {
     filePath = arg;
   }
@@ -136,7 +180,7 @@ for (let i = 0; i < args.length; i++) {
 if (filePath) {
   const content = fs.readFileSync(filePath, 'utf-8');
   const lines = content.trim().split('\n');
-  const formatted = formatLogLines(lines, filters, maxColumns);
+  const formatted = formatLogLines(lines, filters, columnSyntax);
 
   if (inPlace) {
     fs.writeFileSync(filePath, formatted.join('\n') + '\n');
@@ -148,13 +192,19 @@ if (filePath) {
   let input = '';
   process.stdin.setEncoding('utf-8');
 
+  function output() {
+    const lines = input.trim().split('\n');
+    const formatted = formatLogLines(lines, filters, columnSyntax);
+    console.log(formatted.join('\n'));
+    input = '';
+  }
   process.stdin.on('data', chunk => {
-    input += chunk;
+    if (chunk === '\n') {
+      output();
+    } else {
+      input += chunk;
+    }
   });
 
-  process.stdin.on('end', () => {
-    const lines = input.trim().split('\n');
-    const formatted = formatLogLines(lines, filters, maxColumns);
-    console.log(formatted.join('\n'));
-  });
+  process.stdin.on('end', output);
 }

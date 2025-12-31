@@ -8,3 +8,5 @@
 
 - text of "You died 1 time during this dungeon run.". Not "you"
 - Structure Card > Insight > Graph
+- Drag - no dungeons bug
+- Github pages assets cache
