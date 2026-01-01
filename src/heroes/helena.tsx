@@ -1,8 +1,8 @@
 import { InsightCard } from '../components/insight-card';
-import { CooldownGraph } from '../components/graphs/cooldown-graph';
-import { ResourceGraph } from '../components/graphs/resource-graph';
-import { BuffUptimeGraph } from '../components/graphs/buff-uptime-graph';
-import { DamageMitigationGraph } from '../components/graphs/damage-mitigation';
+import { CooldownAnalysis } from '../components/analysis/cooldown-analysis';
+import { ResourceAnalysis } from '../components/analysis/resource-analysis';
+import { BuffUptimeAnalysis } from '../components/analysis/buff-uptime-analysis';
+import { DamageMitigationAnalysis } from '../components/analysis/damage-mitigation';
 
 export function HelenaInsights() {
   return (
@@ -12,7 +12,7 @@ export function HelenaInsights() {
         <InsightCard.Description>
           Grand Melee is an important cooldown. You should press it often to maximize your damage output and utility.
         </InsightCard.Description>
-        <CooldownGraph abilityId={1465} />
+        <CooldownAnalysis abilityId={1465} />
       </InsightCard>
 
       <InsightCard>
@@ -21,7 +21,7 @@ export function HelenaInsights() {
           Shields Up is Helena's key defensive buff that increases Block chance.
           Refreshing the buff before it expires wastes the cooldown unless your Toughness is critically low.
         </InsightCard.Description>
-        <BuffUptimeGraph buffId={1282} highlightRefresh />
+        <BuffUptimeAnalysis buffId={1282} highlightRefresh />
       </InsightCard>
 
       <InsightCard>
@@ -30,7 +30,7 @@ export function HelenaInsights() {
           Helena's success is in managing your Toughness and having high values when damage intake is high.
           Coordinate your toughness peaks with incoming damage spikes.
         </InsightCard.Description>
-        <ResourceGraph resourceId={3} thresholds={[25, 50, 75]} />
+        <ResourceAnalysis resourceId={3} thresholds={[25, 50, 75]} />
       </InsightCard >
 
       <InsightCard>
@@ -39,7 +39,7 @@ export function HelenaInsights() {
           Tracking how well damage is being mitigated.
         </InsightCard.Description>
 
-        <DamageMitigationGraph />
+        <DamageMitigationAnalysis />
       </InsightCard>
     </>
   );

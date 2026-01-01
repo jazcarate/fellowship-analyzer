@@ -1,9 +1,9 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { getBuff } from '../../constants/heroes';
-import { DungeonGraph } from './dungeon-graph';
+import { DungeonGraph } from '../graphs/dungeon-graph';
 
-interface BuffUptimeGraphProps {
+interface BuffUptimeAnalysisProps {
   buffId: number;
   highlightRefresh?: boolean;
 }
@@ -13,7 +13,7 @@ interface BuffPeriod {
   end: number;
 }
 
-export function BuffUptimeGraph({ buffId, highlightRefresh = false }: BuffUptimeGraphProps) {
+export function BuffUptimeAnalysis({ buffId, highlightRefresh = false }: BuffUptimeAnalysisProps) {
   const { dungeon, player, dungeonDuration } = useAnalysis();
 
   const buff = getBuff(buffId);

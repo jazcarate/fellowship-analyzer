@@ -1,7 +1,7 @@
 import { useMemo } from 'preact/hooks';
 import { INTERRUPTIBLE_ABILITIES } from '../../constants/interruptible-abilities';
-import { DamageNumber } from '../damage-number';
-import { Time } from '../time';
+import { DamageNumber } from '../common/damage-number';
+import { Time } from '../common/time';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { InsightCard } from '../insight-card';
 

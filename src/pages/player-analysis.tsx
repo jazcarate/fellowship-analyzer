@@ -3,7 +3,7 @@ import { useLocation } from 'preact-iso';
 import type { Dungeon } from '../types';
 import { AnalysisContext } from '../contexts/analysis-context';
 import { HelenaInsights } from '../heroes/helena';
-import { Minimap } from '../components/minimap';
+import { Minimap } from '../components/common/minimap';
 import { DungeonLevelBadge } from '../components/badges';
 import { RimeInsights } from '../heroes/rime';
 import { DeathInsight } from '../components/insights/death';

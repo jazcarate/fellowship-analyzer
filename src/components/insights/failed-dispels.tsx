@@ -1,6 +1,6 @@
 import { useMemo } from 'preact/hooks';
 import { DISPELLABLE_ABILITIES } from '../../constants/dispellable-abilities';
-import { Time } from '../time';
+import { Time } from '../common/time';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { InsightCard } from '../insight-card';
 import { DungeonGraph } from '../graphs/dungeon-graph';

@@ -1,7 +1,7 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { InsightCard } from '../insight-card';
-import { Time } from '../time';
+import { Time } from '../common/time';
 import type { AllyDeathEvent } from '../../types';
 
 export function DeathInsight() {

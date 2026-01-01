@@ -1,8 +1,8 @@
 import { useMemo } from 'preact/hooks';
-import { useAnalysis } from '../contexts/analysis-context';
-import { getDungeonConfig, getWorldBounds } from '../constants/maps';
-import { type Position, type Hero, hasSource, hasTarget } from '../types';
-import { trackEffects, getEffectsAtTime } from '../utils/effect-tracker';
+import { useAnalysis } from '../../contexts/analysis-context';
+import { getDungeonConfig, getWorldBounds } from '../../constants/maps';
+import { type Position, type Hero, hasSource, hasTarget } from '../../types';
+import { trackEffects, getEffectsAtTime } from '../../utils/effect-tracker';
 
 interface PlayerEntity {
   type: 'player';

@@ -1,15 +1,15 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
-import { LineGraph } from './line-graph';
+import { LineGraph } from '../graphs/line-graph';
 
-interface ResourceGraphProps {
+interface ResourceAnalysisProps {
   resourceId: number;
   maxValue?: number;
   /** Percentage thresholds to show as horizontal lines (e.g., [25, 50, 75]) */
   thresholds?: number[];
 }
 
-export function ResourceGraph({ resourceId, maxValue, thresholds }: ResourceGraphProps) {
+export function ResourceAnalysis({ resourceId, maxValue, thresholds }: ResourceAnalysisProps) {
   const { dungeon, player, dungeonDuration } = useAnalysis();
 
   const values = useMemo((): number[] => {

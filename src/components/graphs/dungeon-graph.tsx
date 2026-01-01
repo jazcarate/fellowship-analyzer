@@ -1,6 +1,6 @@
 import { useAnalysis } from '../../contexts/analysis-context';
-import { Time } from '../time';
-import { Information } from '../information';
+import { Time } from '../common/time';
+import { Information } from '../common/information';
 
 interface Highlight {
     color?: string;

@@ -1,8 +1,8 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
-import { LineGraph } from './line-graph';
+import { LineGraph } from '../graphs/line-graph';
 
-export function DamageMitigationGraph() {
+export function DamageMitigationAnalysis() {
   const { player, dungeon, dungeonDuration } = useAnalysis();
 
   const values = useMemo((): number[] => {

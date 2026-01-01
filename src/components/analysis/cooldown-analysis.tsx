@@ -1,15 +1,15 @@
 import { useMemo } from 'preact/hooks';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { getAbility } from '../../constants/heroes';
-import { Time } from '../time';
-import { Information } from '../information';
-import { DungeonGraph } from './dungeon-graph';
+import { Time } from '../common/time';
+import { Information } from '../common/information';
+import { DungeonGraph } from '../graphs/dungeon-graph';
 
-interface CooldownGraphProps {
+interface CooldownAnalysisProps {
   abilityId: number;
 }
 
-export function CooldownGraph({ abilityId }: CooldownGraphProps) {
+export function CooldownAnalysis({ abilityId }: CooldownAnalysisProps) {
   const { dungeon, player, dungeonDuration } = useAnalysis();
 
   const ability = getAbility(abilityId);

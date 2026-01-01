@@ -57,7 +57,7 @@ export function trackEffects(dungeon: Dungeon, player: Player): {
         effectName: event.effectName,
         effectType: event.effectType,
         targetId: event.sourceId,
-        targetName: event.sourceId,
+        targetName: event.sourceName,
         startTime: event.timestamp,
         endTime: null,
         dispelled: false,
