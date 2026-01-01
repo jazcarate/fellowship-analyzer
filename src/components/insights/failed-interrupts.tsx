@@ -37,54 +37,67 @@ export function FailedInterruptsInsight() {
         event.abilityId === interruptAbilityId
       ) {
         lastInterruptTime = event.timestamp;
-      }
-
-      if (event.type === 'ABILITY_ACTIVATED') {
-        if (!INTERRUPTIBLE_ABILITIES.has(event.abilityId)) continue;
-
-        // Start tracking this cast
+      } else if ((event.type === 'ABILITY_CHANNEL_START' || event.type === 'ABILITY_CAST_START')
+        && INTERRUPTIBLE_ABILITIES.has(event.abilityId)) {
         activeCasts[event.sourceId] = {
           abilityId: event.abilityId,
           abilityName: event.abilityName,
           startTime: event.timestamp,
           damage: 0
         };
-      } else if (event.type === 'ABILITY_DAMAGE') {
-        const activeCast = activeCasts[event.sourceId];
-        if (activeCast && event.abilityId === activeCast.abilityId) {
-          // Accumulate damage during the cast
-          activeCast.damage += event.amountUnmitigated;
-        }
-      } else if (event.type === 'ABILITY_INTERRUPT' || event.type === 'ABILITY_CAST_SUCCESS') {
-        const cast = activeCasts[event.sourceId];
-        if (!cast) continue;
 
-        // Check if interrupt was available at cast start
-        const interruptAvailable =
-          interruptAbilityId !== undefined &&
-          (lastInterruptTime === null || cast.startTime - lastInterruptTime >= interruptCooldown);
-
-        // Record the completed cast
-        if (!casts[cast.abilityId]) {
-          casts[cast.abilityId] = {
-            abilityName: cast.abilityName,
+        if (!casts[event.abilityId]) {
+          casts[event.abilityId] = {
+            abilityName: event.abilityName,
             casts: []
           };
         }
+      } else if ((event.type === 'ABILITY_DAMAGE' || event.type === 'ABILITY_PERIODIC_DAMAGE')
+        && INTERRUPTIBLE_ABILITIES.has(event.abilityId)) {
+        const cast = casts[event.abilityId];
+        if (!cast || cast.casts.length == 0) continue;
+        cast.casts.at(-1)!.damage += event.amountUnmitigated;
+      } else if ((event.type === 'ABILITY_CAST_SUCCESS' || event.type === 'ABILITY_CHANNEL_SUCCESS')
+        && INTERRUPTIBLE_ABILITIES.has(event.abilityId)) {
+        const cast = activeCasts[event.sourceId];
+        if (!cast) continue;
 
-        const abilityCasts = casts[cast.abilityId];
-        if (abilityCasts) {
-          abilityCasts.casts.push({
-            startTime: cast.startTime,
-            endTime: event.timestamp,
-            interrupted: event.type === 'ABILITY_INTERRUPT',
-            damage: cast.damage,
-            sourceName: event.sourceName,
-            interruptAvailable
-          });
+        if (cast.abilityId !== event.abilityId) {
+          console.warn("Successful cast of another ability?");
         }
 
-        // Clear the active cast
+        const interruptAvailable =
+          (lastInterruptTime === null || cast.startTime - lastInterruptTime >= interruptCooldown);
+        casts[cast.abilityId]!.casts.push({
+          startTime: cast.startTime,
+          endTime: event.timestamp,
+          interrupted: false,
+          damage: cast.damage,
+          sourceName: event.sourceName,
+          interruptAvailable,
+        });
+
+        delete activeCasts[event.sourceId];
+      } else if ((event.type === 'ABILITY_CAST_FAIL' || event.type === 'ABILITY_CHANNEL_FAIL')
+        && INTERRUPTIBLE_ABILITIES.has(event.abilityId)) {
+        const cast = activeCasts[event.sourceId];
+        if (!cast) continue;
+
+        if (cast.abilityId !== event.abilityId) {
+          console.warn("Fail cast of another ability?");
+        }
+        const interruptAvailable =
+          (lastInterruptTime === null || cast.startTime - lastInterruptTime >= interruptCooldown);
+
+        casts[cast.abilityId]!.casts.push({
+          startTime: cast.startTime,
+          endTime: event.timestamp,
+          interrupted: true,
+          damage: cast.damage,
+          sourceName: event.sourceName,
+          interruptAvailable
+        });
+
         delete activeCasts[event.sourceId];
       }
     }
@@ -108,10 +121,6 @@ export function FailedInterruptsInsight() {
         {entries.map(([abilityId, { abilityName, casts }]) => {
           // Show casts that either completed OR dealt damage (even if interrupted)
           const relevantCasts = casts.filter(c => !c.interrupted || c.damage > 0);
-          const completedCasts = relevantCasts.filter(c => !c.interrupted);
-          const interruptedWithDamage = relevantCasts.filter(c => c.interrupted && c.damage > 0);
-          const totalDamage = relevantCasts.reduce((sum, c) => sum + c.damage, 0);
-          const cleanInterrupts = casts.filter(c => c.interrupted && c.damage === 0).length;
 
           if (relevantCasts.length === 0) {
             return null;
@@ -131,29 +140,6 @@ export function FailedInterruptsInsight() {
                 <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
                   {abilityName}
                 </div>
-                <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-                  <DamageNumber damage={totalDamage} /> damage from {relevantCasts.length} {relevantCasts.length === 1 ? 'cast' : 'casts'}
-                  {completedCasts.length > 0 && interruptedWithDamage.length > 0 && (
-                    <span style={{ marginLeft: '8px' }}>
-                      ({completedCasts.length} not interrupted, {interruptedWithDamage.length} interrupted late)
-                    </span>
-                  )}
-                  {completedCasts.length > 0 && interruptedWithDamage.length === 0 && (
-                    <span style={{ marginLeft: '8px' }}>
-                      ({completedCasts.length} not interrupted)
-                    </span>
-                  )}
-                  {completedCasts.length === 0 && interruptedWithDamage.length > 0 && (
-                    <span style={{ marginLeft: '8px' }}>
-                      ({interruptedWithDamage.length} interrupted late)
-                    </span>
-                  )}
-                  {cleanInterrupts > 0 && (
-                    <span style={{ color: '#10b981', marginLeft: '8px' }}>
-                      ({cleanInterrupts} interrupted successfully)
-                    </span>
-                  )}
-                </div>
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
@@ -165,15 +151,12 @@ export function FailedInterruptsInsight() {
                   let border: string;
 
                   if (cast.interrupted) {
-                    // Interrupted but dealt damage - green
                     background = '#dcfce7';
                     border = '2px solid #4ade80';
                   } else if (cast.interruptAvailable) {
-                    // Failed with interrupt available - orange
                     background = '#ffedd5';
                     border = '2px solid #f97316';
                   } else {
-                    // Failed but interrupt not available - red
                     background = '#fee';
                     border = '1px solid #fcc';
                   }

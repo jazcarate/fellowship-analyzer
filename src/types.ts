@@ -125,20 +125,12 @@ export interface EffectEvent extends EventWithSource {
   effectType: 'BUFF' | 'DEBUFF';
 }
 
-export interface InterruptEvent {
+export interface CastEvent extends EventWithSource {
   timestamp: number; // Seconds relative to dungeon start
-  type: 'ABILITY_INTERRUPT';
+  type: 'ABILITY_CHANNEL_START' | 'ABILITY_CAST_START' | 'ABILITY_CHANNEL_SUCCESS' | 'ABILITY_CAST_SUCCESS' | 'ABILITY_CAST_FAIL' | 'ABILITY_CHANNEL_FAIL';
+  subtype: 'start' | 'success' | 'fail'
   abilityId: number;
-  sourceId: string;
-  sourceName: string;
-  targetId: string;
-  targetName: string;
-}
-
-export interface CastSuccessfulEvent extends EventWithSource {
-  timestamp: number; // Seconds relative to dungeon start
-  type: 'ABILITY_CAST_SUCCESS';
-  abilityId: number;
+  abilityName: string;
 }
 
 export interface DispelEvent {
@@ -152,7 +144,7 @@ export interface DispelEvent {
   effectId: number;
 }
 
-export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent | AllyDeathEvent | EffectEvent | InterruptEvent | CastSuccessfulEvent | DispelEvent;
+export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent | AllyDeathEvent | EffectEvent | CastEvent | DispelEvent;
 
 /**
  * @param {DungeonEvent} event

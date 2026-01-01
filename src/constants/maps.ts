@@ -167,6 +167,29 @@ const DUNGEONS: Record<number, DungeonConfig> = {
       }
     }
   },
+  12: {
+    name: 'Stormwatch',
+    maps: {
+      20: {
+        bounds: {
+          minX: 6163.466128,
+          maxX: 55763.466128,
+          minY: -34558.297228,
+          maxY: -6038.297228
+        },
+        image: '/assets/maps/stormwatch_1.webp'
+      },
+      33: {
+        bounds: {
+          minX: -591.410170,
+          maxX: 45808.589830,
+          minY: -9963.446504,
+          maxY: 16716.553496
+        },
+        image: '/assets/maps/stormwatch_2.webp'
+      }
+    }
+  },
   13: {
     name: 'Wraithtide Vault',
     maps: {

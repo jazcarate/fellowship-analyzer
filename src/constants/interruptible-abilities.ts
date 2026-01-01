@@ -11,7 +11,6 @@ export const INTERRUPTIBLE_ABILITIES = new Set<number>([
   560,  // Mindrender Barrage
   1618, // Sinnaris Wrath
   480,  // Healing Waters
-  298,  // Sanguine Offering
   909,  // Bolt Barrage
   1642, // Searing Beam
   904,  // Psionic Horror

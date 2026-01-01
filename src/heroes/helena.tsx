@@ -37,9 +37,9 @@ export function HelenaInsights() {
         <InsightCard.Title>Damage Mitigation</InsightCard.Title>
         <InsightCard.Description>
           Tracking how well damage is being mitigated.
-
-          <DamageMitigationGraph />
         </InsightCard.Description>
+
+        <DamageMitigationGraph />
       </InsightCard>
     </>
   );

@@ -8,8 +8,7 @@ import type {
   DispelEvent,
   DungeonEvent,
   Dungeon,
-  InterruptEvent,
-  CastSuccessfulEvent
+  CastEvent
 } from './types';
 import { getDungeonConfig } from './constants/maps';
 import { getHero } from './constants/heroes';
@@ -110,17 +109,15 @@ export function parseLog(logText: string): Dungeon[] {
       case 'ABILITY_DISPEL':
         return parseDispel(relativeSeconds, params);
 
-      case 'ABILITY_INTERRUPT':
-        return parseInterruptEvent(relativeSeconds, type, params);
-      case 'ABILITY_CAST_SUCCESS':
-        return parseCastSuccessfulEvent(relativeSeconds, type, params);
-
       case 'ABILITY_CHANNEL_START':
       case 'ABILITY_CAST_START':
-      case 'ABILITY_CAST_FAIL':
+      case 'ABILITY_CAST_SUCCESS':
       case 'ABILITY_CHANNEL_SUCCESS':
+      case 'ABILITY_CAST_FAIL':
       case 'ABILITY_CHANNEL_FAIL':
-        return null; // Handled by ABILITY_ACTIVATED -> ABILITY_DAMAGE -> ABILITY_INTERRUPT
+        return parseCastEvent(relativeSeconds, type, params);
+      case 'ABILITY_INTERRUPT':
+        return null; // Handled by ABILITY_CAST_FAIL and ABILITY_CHANNEL_FAIL
 
       case 'DAMAGE_ABSORBED':
         return null; // Handled in the parseEffect.
@@ -339,40 +336,46 @@ export function parseLog(logText: string): Dungeon[] {
     };
   }
 
-  function parseInterruptEvent(timestamp: number, type: 'ABILITY_INTERRUPT', params: string[]): InterruptEvent {
-    // 2025-12-26T16:16:13.436+01:00|ABILITY_INTERRUPT|Player-2426405616|".Florius"|Npc-3611820096-163|"Deceitful Scholar"|976|"Bash"|730|"Rune of Detonation"
-    const sourceId = params[2]!;
-    const sourceName = parseString(params[3]!);
-    const targetId = params[4]!;
-    const targetName = parseString(params[5]!);
-    const abilityId = parseInt(params[8]!);
-
-    return {
-      timestamp,
-      type,
-      abilityId,
-      sourceId,
-      sourceName,
-      targetId,
-      targetName
-    };
+  function castSubtype(type: CastEvent["type"]): CastEvent["subtype"] {
+    switch (type) {
+      case 'ABILITY_CHANNEL_START':
+      case 'ABILITY_CAST_START':
+        return 'start';
+      case 'ABILITY_CHANNEL_SUCCESS':
+      case 'ABILITY_CAST_SUCCESS':
+        return 'success';
+      case 'ABILITY_CAST_FAIL':
+      case 'ABILITY_CHANNEL_FAIL':
+        return 'fail';
+    }
   }
 
-  function parseCastSuccessfulEvent(timestamp: number, type: 'ABILITY_CAST_SUCCESS', params: string[]): CastSuccessfulEvent {
-    // 2025-12-26T16:16:18.948+01:00|ABILITY_CAST_SUCCESS|Npc-3611820096-163|"Deceitful Scholar"|731|"Arcane Strike"|0|UnrecognizedType-0|"0"|14310|1272382|0|31626.343750|4404.554688|0.343750|[]
+  function parseCastEvent(timestamp: number,
+    type: 'ABILITY_CAST_SUCCESS' | 'ABILITY_CHANNEL_START' | 'ABILITY_CAST_START' | 'ABILITY_CAST_FAIL' | 'ABILITY_CHANNEL_SUCCESS' | 'ABILITY_CHANNEL_FAIL',
+    params: string[]): CastEvent {
+    // #|                            0|                      1|                 2|                  3|   4|                    5|  6|                 7|                             8|     9|     10| 11|           12|          13|      14| 15|                           16
+    // 0|2025-12-26T16:16:18.948+01:00|ABILITY_CAST_SUCCESS   |Npc-3611820096-163|"Deceitful Scholar"| 731|"Arcane Strike"      |  0|UnrecognizedType-0|"0"                           | 14310|1272382|  0| 31626.343750| 4404.554688|0.343750|[] 
+    // 1|2025-12-16T20:22:53.925+01:00|ABILITY_CHANNEL_START  |Npc-3572498480-163|"Deceitful Scholar"| 730|"Rune of Detonation" |  0|UnrecognizedType-0|"0"                           |904297|1122859|  0| 27103.015625| -423.585938|5.478498|[] |                     6.150000
+    // 2|2025-12-16T20:22:54.825+01:00|ABILITY_CHANNEL_FAIL   |Npc-3572498480-163|"Deceitful Scholar"| 730|"Rune of Detonation" |  0|UnrecognizedType-0|"0"                           |891676|1122859|  0| 27103.015625| -423.585938|5.478498|[] |"AbilityFailed.CastCancelled"
+    // 3|2025-12-16T20:16:50.970+01:00|ABILITY_CHANNEL_SUCCESS|Player-1070073328 |"Devilimp"         |1027|"Freezing Torrent"   |  1|Npc-3926917136-92 |"Vexira, Mother of Nightmares"| 91239|  91239|  0| 40371.304688|-6050.046875|0.882812|[] 
+    // 4|2025-12-16T20:06:29.998+01:00|ABILITY_CAST_START     |Player-4208985616 |".Florius"         |1795|"Mount Haunted Broom"|  0|UnrecognizedType-0|"0"                           |171466| 171466|  0|-13861.453125| 3084.789062|5.072248|[] |                     1.500000
+    // 5|2025-12-16T20:07:08.143+01:00|ABILITY_CAST_FAIL      |Npc-2333606560-132|"Bully Basher"     | 626|"Together Stronk!"   |  0|UnrecognizedType-0|"0"                           |347921| 827910|  0|-12983.156250|-2998.523438|3.939435|[] |"AbilityFailed.CastCancelled"
+
     const sourceId = params[2]!;
     const sourceName = parseString(params[3]!);
     const abilityId = parseInt(params[4]!);
-    const y = parseFloat(params[12]!);
-    const x = parseFloat(params[13]!);
-
+    const abilityName = parseString(params[5]!);
     const sourceCurrentHP = parseInt(params[9]!);
     const sourceMaxHP = parseInt(params[10]!);
+    const y = parseFloat(params[12]!);
+    const x = parseFloat(params[13]!);
 
     return {
       timestamp,
       type,
+      subtype: castSubtype(type),
       abilityId,
+      abilityName,
       sourceId,
       sourceName,
       sourcePosition: { x, y },
@@ -395,7 +398,7 @@ export function parseLog(logText: string): Dungeon[] {
     const targetId = params[4]!;
     const targetName = parseString(params[5]!);
 
-    const abilityId = parseInt(params[6]!);
+    const abilityId = parseInt(params[type === 'ABILITY_PERIODIC_DAMAGE' ? 8 : 6]!);
     const abilityName = parseString(params[7]!);
 
     const amount = parseInt(params[9]!);
