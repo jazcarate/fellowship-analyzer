@@ -94,15 +94,25 @@ export function CooldownAnalysis({ abilityId }: CooldownAnalysisProps) {
         </div>
       </div>
 
-      <DungeonGraph highlights={[
-        { name: "Used", showPill: true, color: 'purple', times: usages.map(u => ({ start: u.relativeTime })) },
-        { name: "On Cooldown", color: '#fbbf24', times: usages.map(u => ({ start: u.relativeTime, end: u.relativeTime + cooldown })) },
-        {
-          name: "Wasted", color: '#ef4444', times: wastedOpportunities.map(w => ({ start: w, end: w + cooldown })),
-          information: 'This ability could have been used at any point during these windows, and it would still have been available for the next time it was actually used.'
-        },
-
-      ]} />
+      <DungeonGraph>
+        <DungeonGraph.Highlight
+          name="Used"
+          showPills
+          color="purple"
+          times={usages.map(u => ({ start: u.relativeTime }))}
+        />
+        <DungeonGraph.Highlight
+          name="On Cooldown"
+          color="#fbbf24"
+          times={usages.map(u => ({ start: u.relativeTime, end: u.relativeTime + cooldown }))}
+        />
+        <DungeonGraph.Highlight
+          name="Wasted"
+          color="#ef4444"
+          times={wastedOpportunities.map(w => ({ start: w, end: w + cooldown }))}
+          information="This ability could have been used at any point during these windows, and it would still have been available for the next time it was actually used."
+        />
+      </DungeonGraph>
     </div>
   );
 }

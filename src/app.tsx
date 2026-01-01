@@ -5,7 +5,7 @@ import { parseLog } from './parser';
 import { getLogText, storeLogText, clearLogText } from './storage';
 import { UploadPage } from './pages/upload';
 import { DungeonListPage } from './pages/dungeon-list';
-import { PlayerAnalysisPage } from './pages/player-analysis';
+import { PlayerInsightsPage } from './pages/player-insights';
 import './style.css';
 
 export function App() {
@@ -95,7 +95,7 @@ export function App() {
         <LocationProvider>
           <Router>
             <Route path="/" component={() => <DungeonListPage dungeons={dungeons} onReset={resetApp} />} />
-            <Route path="/dungeon/:dungeonId/player/:playerId" component={(props) => <PlayerAnalysisPage {...props} dungeons={dungeons} />} />
+            <Route path="/dungeon/:dungeonId/player/:playerId" component={(props) => <PlayerInsightsPage {...props} dungeons={dungeons} />} />
           </Router>
         </LocationProvider>
       )}

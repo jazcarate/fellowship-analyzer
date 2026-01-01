@@ -1,6 +1,6 @@
 import { useLocation } from 'preact-iso';
 import type { Dungeon } from '../types';
-import { PlayerBadge, ModifierBadge, DungeonLevelBadge } from './badges';
+import { PlayerBadge, ModifierBadge, DungeonLevelBadge } from './common/badges';
 import { Time } from './common/time';
 
 interface DungeonCardProps {

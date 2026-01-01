@@ -98,13 +98,19 @@ export function BuffUptimeAnalysis({ buffId, highlightRefresh = false }: BuffUpt
         </div>
       </div>
 
-      {/* Timeline */}
-      <div style={{ marginBottom: '15px' }}>
-        <DungeonGraph highlights={[
-          { name: "Buff active", color: '#22c55e', times: periods },
-          { name: "Refreshed", showPill: true, color: '#3b82f6', times: refreshTimes.map(start => ({ start })) }
-        ]} />
-      </div>
+      <DungeonGraph>
+        <DungeonGraph.Highlight
+          name="Buff active"
+          color="#22c55e"
+          times={periods}
+        />
+        <DungeonGraph.Highlight
+          name="Refreshed"
+          showPills
+          color="#3b82f6"
+          times={refreshTimes.map(start => ({ start }))}
+        />
+      </DungeonGraph>
     </div>
   );
 }

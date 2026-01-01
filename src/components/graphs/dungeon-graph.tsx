@@ -1,21 +1,32 @@
+import { type ComponentChildren, type VNode, toChildArray } from 'preact';
 import { useAnalysis } from '../../contexts/analysis-context';
 import { Time } from '../common/time';
 import { Information } from '../common/information';
 
-interface Highlight {
-    color?: string;
+interface HighlightProps {
     name: string;
+    color?: string;
     information?: string;
-    showPill?: boolean
-    times: { start: number, end?: number }[];
+    showPills?: boolean;
+    times: { start: number; end?: number }[];
+}
+
+function Highlight(_props: HighlightProps) {
+    return null;
 }
 
 interface DungeonGraphProps {
-    highlights: Highlight[];
+    children: ComponentChildren;
 }
 
-export function DungeonGraph({ highlights }: DungeonGraphProps) {
+export function DungeonGraph({ children }: DungeonGraphProps) {
     const { dungeonDuration, hoveredTime, setHoveredTime } = useAnalysis();
+
+    const highlights = toChildArray(children)
+        .filter((child): child is VNode =>
+            typeof child === 'object' && child !== null && 'props' in child
+        )
+        .map(child => child.props as unknown as HighlightProps);
 
     return (
         <div style={{ marginBottom: '15px' }}>
@@ -58,7 +69,6 @@ export function DungeonGraph({ highlights }: DungeonGraphProps) {
                     );
                 }))}
 
-                {/* Hover indicator */}
                 {hoveredTime !== null && (
                     <div
                         style={{
@@ -75,7 +85,6 @@ export function DungeonGraph({ highlights }: DungeonGraphProps) {
                 )}
             </div>
 
-            {/* Legend */}
             <div style={{
                 display: 'flex',
                 gap: '15px',
@@ -96,9 +105,9 @@ export function DungeonGraph({ highlights }: DungeonGraphProps) {
             </div>
 
             {highlights.map((highlight, hid) => {
-                if (!highlight.showPill) return null;
+                if (!highlight.showPills) return null;
 
-                return (<div>
+                return (<div key={`pills-${hid}`}>
                     <div style={{
                         fontSize: '13px',
                         fontWeight: '600',
@@ -142,3 +151,5 @@ export function DungeonGraph({ highlights }: DungeonGraphProps) {
         </div>
     );
 }
+
+DungeonGraph.Highlight = Highlight;

@@ -73,14 +73,14 @@ export function AlwaysBeCastingInsight() {
       </InsightCard.Description>
 
       <div style={{ marginTop: '16px' }}>
-        <DungeonGraph highlights={[
-          {
-            name: "Downtime",
-            color: '#ef4444',
-            times: gaps.map(gap => ({ start: gap.startTime, end: gap.endTime })),
-            information: `Periods of ${GAP_THRESHOLD}+ seconds without casting abilities`
-          }
-        ]} />
+        <DungeonGraph>
+          <DungeonGraph.Highlight
+            name="Downtime"
+            color="#ef4444"
+            times={gaps.map(gap => ({ start: gap.startTime, end: gap.endTime }))}
+            information={`Periods of ${GAP_THRESHOLD}+ seconds without casting abilities`}
+          />
+        </DungeonGraph>
       </div>
     </InsightCard>
   );

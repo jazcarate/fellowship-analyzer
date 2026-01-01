@@ -4,7 +4,7 @@ import type { Dungeon } from '../types';
 import { AnalysisContext } from '../contexts/analysis-context';
 import { HelenaInsights } from '../heroes/helena';
 import { Minimap } from '../components/common/minimap';
-import { DungeonLevelBadge } from '../components/badges';
+import { DungeonLevelBadge } from '../components/common/badges';
 import { RimeInsights } from '../heroes/rime';
 import { DeathInsight } from '../components/insights/death';
 import { AvoidableDamageInsight } from '../components/insights/avoidable-damage';
@@ -14,13 +14,13 @@ import { AlwaysBeCastingInsight } from '../components/insights/always-be-casting
 import { PlaceholderInsights } from '../heroes/placeholder';
 import { InsightCard } from '../components/insight-card';
 
-interface PlayerAnalysisPageProps {
+interface PlayerInsightsPageProps {
   dungeonId?: string;
   playerId?: string;
   dungeons: Dungeon[];
 }
 
-export function PlayerAnalysisPage({ dungeonId, playerId, dungeons }: PlayerAnalysisPageProps) {
+export function PlayerInsightsPage({ dungeonId, playerId, dungeons }: PlayerInsightsPageProps) {
   const { route } = useLocation();
   const dungeon = dungeons.find(d => d.id === dungeonId);
   const player = dungeon?.players.find(p => p.playerId === playerId);

@@ -88,20 +88,18 @@ export function FailedDispelsInsight() {
       </InsightCard.Description>
 
       <div style={{ marginTop: '16px' }}>
-        <DungeonGraph
-          highlights={[
-            {
-              name: 'Dispels',
-              color: '#10b981',
-              times: dispelTimes.map(time => ({ start: time }))
-            },
-            {
-              name: 'Problematic Effects',
-              color: '#dc2626',
-              times: problematicEffectTimes
-            }
-          ]}
-        />
+        <DungeonGraph>
+          <DungeonGraph.Highlight
+            name="Dispels"
+            color="#10b981"
+            times={dispelTimes.map(time => ({ start: time }))}
+          />
+          <DungeonGraph.Highlight
+            name="Problematic Effects"
+            color="#dc2626"
+            times={problematicEffectTimes}
+          />
+        </DungeonGraph>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '20px' }}>
