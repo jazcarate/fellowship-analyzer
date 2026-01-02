@@ -11,6 +11,34 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
   const duration = dungeon.endTime;
   const { route } = useLocation();
 
+  const getStatusInfo = () => {
+    switch (dungeon.completion) {
+      case 'not_completed':
+        return {
+          text: '✗ Not Completed',
+          bgColor: '#fee',
+          textColor: '#dc2626',
+          borderColor: '#f87171'
+        };
+      case 'timed':
+        return {
+          text: '✓ Timed',
+          bgColor: '#d1fae5',
+          textColor: '#065f46',
+          borderColor: '#10b981'
+        };
+      case 'completed':
+        return {
+          text: '✓ Completed',
+          bgColor: '#fef3c7',
+          textColor: '#92400e',
+          borderColor: '#f59e0b'
+        };
+    }
+  };
+
+  const statusInfo = getStatusInfo();
+
   return (
     <div
       style={{
@@ -19,7 +47,7 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
         borderRadius: '8px',
         boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
         border: '1px solid #e0e0e0',
-        borderLeft: `4px solid ${dungeon.completed ? '#10b981' : '#f59e0b'}`
+        borderLeft: `4px solid ${statusInfo.borderColor}`
       }}
     >
       <div style={{
@@ -33,10 +61,11 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
           fontSize: '12px',
           padding: '4px 8px',
           borderRadius: '4px',
-          background: '#e5e7eb',
-          color: '#374151'
+          background: statusInfo.bgColor,
+          color: statusInfo.textColor,
+          fontWeight: '500'
         }}>
-          {dungeon.completed ? '✓ Completed' : 'x Not Completed'}
+          {statusInfo.text}
         </span>
       </div>
 

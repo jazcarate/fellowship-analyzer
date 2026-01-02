@@ -143,7 +143,7 @@ export function parseLog(logText: string): Dungeon[] {
 
   function handleZoneChange(timestamp: number, params: string[]): void {
     // 2025-12-16T20:35:52.561+01:00|ZONE_CHANGE|"The Stronghold"|17|1|
-    if (currentDungeon && !currentDungeon.completed && currentDungeon.startTime !== -1) {
+    if (currentDungeon && currentDungeon.completion === 'not_completed' && currentDungeon.startTime !== -1) {
       // Set endTime to either the last event timestamp or the zone change time
       const lastEventTime = currentDungeon.events.length > 0
         ? currentDungeon.events[currentDungeon.events.length - 1]!.timestamp
@@ -169,7 +169,7 @@ export function parseLog(logText: string): Dungeon[] {
       modifierIds: [],
       startTime: -1,
       endTime: 0,
-      completed: false,
+      completion: 'not_completed',
       players: [],
       events: [],
       maps: {}
@@ -191,12 +191,13 @@ export function parseLog(logText: string): Dungeon[] {
     currentDungeon.startTime = timestamp;
   }
 
-  function handleDungeonEnd(timestamp: number, _params: string[]): void {
+  function handleDungeonEnd(timestamp: number, params: string[]): void {
     // 2025-12-16T20:18:21.250+01:00|DUNGEON_END|"Silken Hollow"|24|18|[6,4,15,16,21]|1|708396|402.035706|1|0
-    // TODO: Some of these params should tell if the dungeon was completed
     if (currentDungeon && currentDungeon.startTime !== -1) {
-      currentDungeon.endTime = (timestamp - currentDungeon.startTime) / 1000;
-      currentDungeon.completed = true;
+      currentDungeon.endTime = parseInt(params[7]!) / 1000;
+      currentDungeon.completion = params[6] !== '1' ? 'not_completed'
+        : params[9] === '1' ? 'timed'
+        : 'completed';
       currentDungeon = null;
     }
   }

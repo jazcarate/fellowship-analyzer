@@ -20,20 +20,6 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
     event.preventDefault();
     setDragging(false);
 
-    const items = event?.dataTransfer?.items;
-
-    if (items) {
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i]!;
-        if (item.kind === 'string' && item.type.match('^text/plain')) {
-          item.getAsString((text) => {
-            onFileSelect(text);
-          });
-          return;
-        }
-      }
-    }
-
     const file = event?.dataTransfer?.files[0];
     if (!file) return;
 

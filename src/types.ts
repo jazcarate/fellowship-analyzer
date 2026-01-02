@@ -162,6 +162,8 @@ export function hasTarget(event: DungeonEvent): event is DungeonEvent & EventWit
   return 'targetPosition' in event;
 }
 
+export type DungeonCompletion = 'not_completed' | 'completed' | 'timed';
+
 export interface Dungeon {
   id: string;
   dungeonId: number;
@@ -170,7 +172,7 @@ export interface Dungeon {
   modifierIds: number[];
   startTime: number; // Absolute timestamp (milliseconds) when dungeon was played
   endTime: number; // Seconds relative to startTime
-  completed: boolean;
+  completion: DungeonCompletion;
   players: Player[];
   events: DungeonEvent[]; // All event timestamps are relative seconds from startTime
   maps: Record<number, MapInfo>;
