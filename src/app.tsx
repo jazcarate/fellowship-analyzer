@@ -11,7 +11,7 @@ import './style.css';
 
 export function App() {
   const [dungeons, setDungeons] = useState<Dungeon[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadStoredLog = async () => {
