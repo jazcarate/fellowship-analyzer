@@ -125,6 +125,12 @@ export interface EffectEvent extends EventWithSource {
   effectType: 'BUFF' | 'DEBUFF';
 }
 
+export interface UnitDeathEvent {
+  timestamp: number; // Seconds relative to dungeon start
+  type: 'UNIT_DEATH';
+  percentage: number; // 0..1
+}
+
 export interface CastEvent extends EventWithSource {
   timestamp: number; // Seconds relative to dungeon start
   type: 'ABILITY_CHANNEL_START' | 'ABILITY_CAST_START' | 'ABILITY_CHANNEL_SUCCESS' | 'ABILITY_CAST_SUCCESS' | 'ABILITY_CAST_FAIL' | 'ABILITY_CHANNEL_FAIL';
@@ -144,7 +150,14 @@ export interface DispelEvent {
   effectId: number;
 }
 
-export type DungeonEvent = AbilityActivatedEvent | ResourceChangedEvent | DamageEvent | AllyDeathEvent | EffectEvent | CastEvent | DispelEvent;
+export type DungeonEvent = AbilityActivatedEvent
+  | ResourceChangedEvent
+  | DamageEvent
+  | AllyDeathEvent
+  | EffectEvent
+  | CastEvent
+  | DispelEvent
+  | UnitDeathEvent;
 
 /**
  * @param {DungeonEvent} event

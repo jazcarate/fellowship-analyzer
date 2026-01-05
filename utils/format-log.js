@@ -98,7 +98,7 @@ function parseColumnSyntax(syntax, maxCols) {
         }
     }
 
-    return Array.from(indices).sort((a, b) => a - b);
+    return Array.from(indices);
 }
 
 /**

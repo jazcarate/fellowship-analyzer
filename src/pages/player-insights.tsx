@@ -13,28 +13,34 @@ import { FailedDispelsInsight } from '../components/insights/failed-dispels';
 import { AlwaysBeCastingInsight } from '../components/insights/always-be-casting';
 import { PlaceholderInsights } from '../heroes/placeholder';
 import { InsightCard } from '../components/insight-card';
+import { Header } from '../components/common/header';
+import { DungeonPercentageInsight } from '../components/insights/dungeon-percentage';
 
 interface PlayerInsightsPageProps {
   dungeonId?: string;
   playerId?: string;
   dungeons: Dungeon[];
+  onFileSelect: (text: string) => void;
 }
 
-export function PlayerInsightsPage({ dungeonId, playerId, dungeons }: PlayerInsightsPageProps) {
+export function PlayerInsightsPage({ dungeonId, playerId, dungeons, onFileSelect }: PlayerInsightsPageProps) {
   const { route } = useLocation();
   const dungeon = dungeons.find(d => d.id === dungeonId);
   const player = dungeon?.players.find(p => p.playerId === playerId);
 
   if (!dungeon || !player) {
     return (
-      <div style={{
-        background: '#fff',
-        padding: '20px',
-        borderRadius: '8px',
-        border: '1px solid #e0e0e0'
-      }}>
-        <p>Dungeon or player not found</p>
-        <button onClick={() => route('/')}>← Back to Dungeon List</button>
+      <div>
+        <Header onFileSelect={onFileSelect} showUpload={true} />
+        <div style={{
+          background: '#fff',
+          padding: '20px',
+          borderRadius: '8px',
+          border: '1px solid #e0e0e0'
+        }}>
+          <p>Dungeon or player not found</p>
+          <button onClick={() => route('/')}>← Back to Dungeon List</button>
+        </div>
       </div>
     );
   }
@@ -66,6 +72,8 @@ export function PlayerInsightsPage({ dungeonId, playerId, dungeons }: PlayerInsi
   return (
     <AnalysisContext.Provider value={contextValue}>
       <div>
+        <Header onFileSelect={onFileSelect} showUpload={true} />
+
         <div style={{
           background: 'var(--surface)',
           padding: '30px',
@@ -125,6 +133,8 @@ export function PlayerInsightsPage({ dungeonId, playerId, dungeons }: PlayerInsi
             <HeroComponent />
 
             <DeathInsight />
+
+            {player.hero.tank && <DungeonPercentageInsight />}
 
             <AvoidableDamageInsight />
 

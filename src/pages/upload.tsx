@@ -12,6 +12,12 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
+
+    if (!file.name.endsWith('.txt')) {
+      alert('Please select a .txt file');
+      return;
+    }
+
     const text = await file.text();
     onFileSelect(text);
   };
@@ -34,7 +40,17 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
 
   return (
     <div
-      class={`upload-section ${dragging ? 'drag-over' : ''}`}
+      style={{
+        background: dragging ? 'var(--surface)' : 'var(--offwhite-color)',
+        border: `3px dashed ${dragging ? 'var(--highlight-color)' : 'var(--border)'}`,
+        borderRadius: '12px',
+        padding: '80px 40px',
+        textAlign: 'center',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        transform: dragging ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: dragging ? '0 8px 16px rgba(0, 0, 0, 0.1)' : 'none'
+      }}
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragEnter={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={(e) => { e.preventDefault(); setDragging(false); }}
@@ -48,10 +64,22 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
         accept=".txt"
         style={{ display: 'none' }}
       />
-      <label for="fileInput" class="upload-label">
-        <div class="upload-icon">📊</div>
-        <div class="upload-text">Drop your combat log here or click to browse</div>
-        <div class="upload-hint">Analyzing Fellowship combat logs</div>
+      <label for="fileInput" style={{ cursor: 'pointer', display: 'block' }}>
+        <div style={{ fontSize: '64px', marginBottom: '20px' }}>📊</div>
+        <div style={{
+          fontSize: '20px',
+          fontWeight: '600',
+          color: 'var(--text-primary)',
+          marginBottom: '12px'
+        }}>
+          {dragging ? 'Drop your combat log here' : 'Drop your combat log here or click to browse'}
+        </div>
+        <div style={{
+          fontSize: '14px',
+          color: 'var(--text-secondary)'
+        }}>
+          Upload Fellowship combat logs (.txt files)
+        </div>
       </label>
     </div>
   );

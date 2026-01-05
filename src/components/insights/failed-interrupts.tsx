@@ -106,7 +106,76 @@ export function FailedInterruptsInsight() {
   }, [dungeon.events, player.playerId, player.hero.interrupt]);
 
   const entries = Object.entries(castsByAbility);
-  if (entries.length === 0) {
+
+  const relevant = entries.map(([abilityId, { abilityName, casts }]) => {
+    // Show casts that either completed OR dealt damage (even if interrupted)
+    const relevantCasts = casts.filter(c => !c.interrupted || c.damage > 0);
+    if (relevantCasts.length === 0) return null;
+
+    return (
+      <div
+        key={abilityId}
+        style={{
+          background: 'var(--card-background)',
+          padding: '16px',
+          borderRadius: '8px',
+          border: '1px solid var(--border-color)'
+        }}
+      >
+        <div style={{ marginBottom: '8px' }}>
+          <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
+            {abilityName}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
+          {relevantCasts.map((cast, idx) => {
+            const duration = cast.endTime - cast.startTime;
+
+            // Determine styling based on interrupt status
+            let background: string;
+            let border: string;
+
+            if (cast.interrupted) {
+              background = '#dcfce7';
+              border = '2px solid #4ade80';
+            } else if (cast.interruptAvailable) {
+              background = '#ffedd5';
+              border = '2px solid #f97316';
+            } else {
+              background = '#fee';
+              border = '1px solid #fcc';
+            }
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  background,
+                  border,
+                  padding: '6px 10px',
+                  borderRadius: '4px',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease'
+                }}
+                onMouseEnter={() => setHoveredTime(cast.startTime)}
+              >
+                <Time seconds={cast.startTime} /> •{' '}
+                <DamageNumber damage={cast.damage} />
+                <span style={{ color: 'var(--text-secondary)' }}>
+                  {' '}
+                  ({duration.toFixed(1)}s)
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }).filter(r => r !== null);
+
+  if (relevant.length === 0) {
     return null;
   }
 
@@ -118,76 +187,7 @@ export function FailedInterruptsInsight() {
       </InsightCard.Description>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {entries.map(([abilityId, { abilityName, casts }]) => {
-          // Show casts that either completed OR dealt damage (even if interrupted)
-          const relevantCasts = casts.filter(c => !c.interrupted || c.damage > 0);
-
-          if (relevantCasts.length === 0) {
-            return null;
-          }
-
-          return (
-            <div
-              key={abilityId}
-              style={{
-                background: 'var(--card-background)',
-                padding: '16px',
-                borderRadius: '8px',
-                border: '1px solid var(--border-color)'
-              }}
-            >
-              <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-                  {abilityName}
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
-                {relevantCasts.map((cast, idx) => {
-                  const duration = cast.endTime - cast.startTime;
-
-                  // Determine styling based on interrupt status
-                  let background: string;
-                  let border: string;
-
-                  if (cast.interrupted) {
-                    background = '#dcfce7';
-                    border = '2px solid #4ade80';
-                  } else if (cast.interruptAvailable) {
-                    background = '#ffedd5';
-                    border = '2px solid #f97316';
-                  } else {
-                    background = '#fee';
-                    border = '1px solid #fcc';
-                  }
-
-                  return (
-                    <div
-                      key={idx}
-                      style={{
-                        background,
-                        border,
-                        padding: '6px 10px',
-                        borderRadius: '4px',
-                        fontSize: '13px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease'
-                      }}
-                      onMouseEnter={() => setHoveredTime(cast.startTime)}
-                    >
-                      <Time seconds={cast.startTime} /> •{' '}
-                      <DamageNumber damage={cast.damage} />
-                      <span style={{ color: 'var(--text-secondary)' }}>
-                        {' '}
-                        ({duration.toFixed(1)}s)
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+        {relevant}
       </div>
     </InsightCard>
   );

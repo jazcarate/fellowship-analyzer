@@ -46,4 +46,5 @@ export const AVOIDABLE_ABILITIES: Record<number, AvoidableAbilityMetadata> = {
   458: { nonTankOnly: true, note: "Don't stand close to the tank" }, // Lunar Soulsear
   492: { nonTankOnly: true, note: "Don't stand close to the tank" }, // Wailing Strike
   1634: { nonTankOnly: true, note: "Don't stand close to the tank" }, // Forked Lightning
+  1836: { nonTankOnly: true, note: "Don't stand close to the tank" }, // Ghorn the Avalanche's Attack
 };

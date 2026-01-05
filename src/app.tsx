@@ -2,10 +2,11 @@ import { useState, useEffect } from 'preact/hooks';
 import { LocationProvider, Router, Route } from 'preact-iso';
 import type { Dungeon } from './types';
 import { parseLog } from './parser';
-import { getLogText, storeLogText, clearLogText } from './storage';
+import { getLogText, storeLogText } from './storage';
 import { UploadPage } from './pages/upload';
 import { DungeonListPage } from './pages/dungeon-list';
 import { PlayerInsightsPage } from './pages/player-insights';
+import { Header } from './components/common/header';
 import './style.css';
 
 export function App() {
@@ -52,15 +53,6 @@ export function App() {
     setLoading(false);
   };
 
-  const resetApp = async () => {
-    try {
-      await clearLogText();
-    } catch (err) {
-      console.error('Could not clear log:', err);
-    }
-    setDungeons([]);
-  };
-
   return (
     <div class="container">
       {loading && (
@@ -83,19 +75,19 @@ export function App() {
       )}
 
       {!loading && dungeons.length === 0 && (
-        <div style={{ maxWidth: '800px', margin: '0 auto', paddingTop: '60px' }}>
-          <h1 style={{ fontSize: '32px', marginBottom: '40px', textAlign: 'center', color: 'var(--text-primary)' }}>
-            Fellowship Log Analyzer
-          </h1>
-          <UploadPage onFileSelect={handleFileSelect} />
+        <div>
+          <Header showUpload={false} />
+          <div style={{ maxWidth: '800px', margin: '0 auto', paddingTop: '20px' }}>
+            <UploadPage onFileSelect={handleFileSelect} />
+          </div>
         </div>
       )}
 
       {!loading && dungeons.length > 0 && (
         <LocationProvider>
           <Router>
-            <Route path="/" component={() => <DungeonListPage dungeons={dungeons} onReset={resetApp} />} />
-            <Route path="/dungeon/:dungeonId/player/:playerId" component={(props) => <PlayerInsightsPage {...props} dungeons={dungeons} />} />
+            <Route path="/" component={() => <DungeonListPage dungeons={dungeons} onFileSelect={handleFileSelect} />} />
+            <Route path="/dungeon/:dungeonId/player/:playerId" component={(props) => <PlayerInsightsPage {...props} dungeons={dungeons} onFileSelect={handleFileSelect} />} />
           </Router>
         </LocationProvider>
       )}

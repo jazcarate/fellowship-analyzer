@@ -1,32 +1,23 @@
 import type { Dungeon } from '../types';
 import { DungeonCard } from '../components/dungeon-card';
+import { Header } from '../components/common/header';
 
 interface DungeonListPageProps {
   dungeons: Dungeon[];
-  onReset: () => void;
+  onFileSelect: (text: string) => void;
 }
 
-export function DungeonListPage({ dungeons, onReset }: DungeonListPageProps) {
+export function DungeonListPage({ dungeons, onFileSelect }: DungeonListPageProps) {
   return (
     <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '30px'
-      }}>
-        <div>
-          <h1 style={{ fontSize: '28px', marginBottom: '8px' }}>
-            Fellowship Log Analyzer
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>
-            {dungeons.length} {dungeons.length === 1 ? 'dungeon' : 'dungeons'} found
-          </p>
-        </div>
-        <button onClick={onReset}>
-          Upload New Log
-        </button>
+      <Header onFileSelect={onFileSelect} showUpload={true} />
+
+      <div style={{ marginBottom: '20px' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '16px' }}>
+          {dungeons.length} {dungeons.length === 1 ? 'dungeon' : 'dungeons'} found
+        </p>
       </div>
+
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',

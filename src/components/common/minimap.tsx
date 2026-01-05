@@ -3,6 +3,7 @@ import { useAnalysis } from '../../contexts/analysis-context';
 import { getDungeonConfig, getWorldBounds } from '../../constants/maps';
 import { type Position, type Hero, hasSource, hasTarget } from '../../types';
 import { trackEffects, getEffectsAtTime } from '../../utils/effect-tracker';
+import { TRACKED_BUFF_IDS } from '../../constants/effects';
 
 interface PlayerEntity {
   type: 'player';
@@ -123,15 +124,6 @@ export function Minimap() {
 
   const mapWidth = 350;
   const mapHeight = 350;
-
-  const TRACKED_BUFF_IDS = new Set([
-    2192, // Siegebreaker
-    1230, // Gleaming Shield
-    2229, // Empowered Shield Slam: Barrier
-    1484, // Ironleaf Ward
-    2269, // Safe Haven
-    2172  // Unyielding Bloom
-  ]);
 
   const playerEntitiesAtTime = useMemo(() => {
     if (!hoveredTime) return [];

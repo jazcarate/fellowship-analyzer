@@ -8,7 +8,8 @@ import type {
   DispelEvent,
   DungeonEvent,
   Dungeon,
-  CastEvent
+  CastEvent,
+  UnitDeathEvent
 } from './types';
 import { getDungeonConfig } from './constants/maps';
 import { getHero } from './constants/heroes';
@@ -122,10 +123,12 @@ export function parseLog(logText: string): Dungeon[] {
       case 'DAMAGE_ABSORBED':
         return null; // Handled in the parseEffect.
 
+      case 'UNIT_DEATH':
+        return parseUnitDeath(relativeSeconds, type, params);
+
       case 'ABILITY_LIFESTEAL_HEAL':
       case 'ABILITY_PERIODIC_HEAL':
       case 'ABILITY_HEAL':
-      case 'UNIT_DEATH':
       case 'RESURRECT':
       case 'UNIT_DESTROYED':
       case 'ENCOUNTER_START':
@@ -197,7 +200,7 @@ export function parseLog(logText: string): Dungeon[] {
       currentDungeon.endTime = parseInt(params[7]!) / 1000;
       currentDungeon.completion = params[6] !== '1' ? 'not_completed'
         : params[9] === '1' ? 'timed'
-        : 'completed';
+          : 'completed';
       currentDungeon = null;
     }
   }
@@ -348,6 +351,14 @@ export function parseLog(logText: string): Dungeon[] {
       case 'ABILITY_CAST_FAIL':
       case 'ABILITY_CHANNEL_FAIL':
         return 'fail';
+    }
+  }
+
+  function parseUnitDeath(timestamp: number, type: 'UNIT_DEATH', param: string[]): UnitDeathEvent {
+    return {
+      timestamp,
+      type,
+      percentage: parseFloat(param[9]!)
     }
   }
 
