@@ -71,8 +71,16 @@ export function AvoidableDamageInsight() {
   }, [dungeon.events, player, player]);
 
   const entries = Object.entries(windows);
+
   if (entries.length === 0) {
-    return null;
+    return (
+      <InsightCard positive>
+        <InsightCard.Title>Avoidable Damage</InsightCard.Title>
+        <InsightCard.Description>
+          No avoidable damage taken - great positioning and awareness!
+        </InsightCard.Description>
+      </InsightCard>
+    );
   }
 
   return (
@@ -123,8 +131,7 @@ export function AvoidableDamageInsight() {
                     }}
                     onMouseEnter={() => setHoveredTime(window.startTime)}
                   >
-                    {window.sourceName} @
-                    <Time seconds={window.startTime} /> - <DamageNumber damage={window.totalDamage} />
+                    <Time seconds={window.startTime} /> - {window.sourceName} • <DamageNumber damage={window.totalDamage} />
                     {' '}
                     <span style={{ color: 'var(--text-secondary)' }}>
                       ({window.count} {window.count === 1 ? 'hit' : 'hits'})

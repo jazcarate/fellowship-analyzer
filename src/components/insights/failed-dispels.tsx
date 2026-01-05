@@ -5,6 +5,7 @@ import { useAnalysis } from '../../contexts/analysis-context';
 import { InsightCard } from '../insight-card';
 import { DungeonGraph } from '../graphs/dungeon-graph';
 import { trackEffects } from '../../utils/effect-tracker';
+import { DamageNumber } from '../common/damage-number';
 
 interface DebuffInstance {
   startTime: number;
@@ -76,15 +77,23 @@ export function FailedDispelsInsight() {
   }, [dungeon, player]);
 
   const entries = Object.entries(debuffsByAbility);
+
   if (entries.length === 0) {
-    return null;
+    return (
+      <InsightCard positive>
+        <InsightCard.Title>Dispel Opportunities</InsightCard.Title>
+        <InsightCard.Description>
+          No dangerous debuffs that required dispelling - great job staying clear of debuffs!
+        </InsightCard.Description>
+      </InsightCard>
+    );
   }
 
   return (
     <InsightCard>
       <InsightCard.Title>Dispel Opportunities</InsightCard.Title>
       <InsightCard.Description>
-        Dangerous debuffs that should be dispelled to prevent damage and death. Orange borders show when dispel was available but not used. Red text indicates damage was taken.
+        Dangerous debuffs that should be dispelled to prevent damage and death. Orange borders show when dispel was available but not used.
       </InsightCard.Description>
 
       <div style={{ marginTop: '16px' }}>
@@ -159,7 +168,7 @@ export function FailedDispelsInsight() {
                       </span>
                       {debuff.damageDealt > 0 && (
                         <span style={{ color: '#dc2626', marginLeft: '4px', fontWeight: '600' }}>
-                          -{debuff.damageDealt.toLocaleString()}
+                          <DamageNumber damage={debuff.damageDealt} />
                         </span>
                       )}
                     </div>

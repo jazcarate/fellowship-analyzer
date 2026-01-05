@@ -12,7 +12,6 @@ export const INTERRUPTIBLE_ABILITIES = new Set<number>([
   1618, // Sinnaris Wrath
   480,  // Healing Waters
   909,  // Bolt Barrage
-  1642, // Searing Beam
   904,  // Psionic Horror
   51,   // Anguish Unleashed
   496,  // Call of the Abyss

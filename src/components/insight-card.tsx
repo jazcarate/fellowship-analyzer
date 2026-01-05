@@ -2,15 +2,16 @@ import type { ComponentChildren } from 'preact';
 
 interface InsightCardProps {
   children: ComponentChildren;
+  positive?: boolean;
 }
 
-export function InsightCard({ children }: InsightCardProps) {
+export function InsightCard({ children, positive = false }: InsightCardProps) {
   return (
     <div style={{
-      background: 'var(--surface)',
+      background: positive ? '#f0fdf4' : 'var(--surface)',
       padding: '20px',
       borderRadius: '8px',
-      border: '1px solid var(--border)',
+      border: positive ? '1px solid #86efac' : '1px solid var(--border)',
       marginBottom: '20px'
     }}>
       {children}

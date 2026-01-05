@@ -56,7 +56,7 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
         alignItems: 'start',
         marginBottom: '10px'
       }}>
-        <h3 style={{ color: '#2563eb', margin: 0 }}>{dungeon.name}</h3>
+        <h3 style={{ margin: 0 }}>{dungeon.name}</h3>
         <span style={{
           fontSize: '12px',
           padding: '4px 8px',

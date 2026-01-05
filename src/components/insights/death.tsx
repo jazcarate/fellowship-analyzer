@@ -19,16 +19,22 @@ export function DeathInsight() {
       }));
   }, [dungeon.events, player.playerId]);
 
-  // Don't render anything if no deaths
   if (deaths.length === 0) {
-    return null;
+    return (
+      <InsightCard positive>
+        <InsightCard.Title>Deaths</InsightCard.Title>
+        <InsightCard.Description>
+          No deaths during this dungeon run - excellent survivability!
+        </InsightCard.Description>
+      </InsightCard>
+    );
   }
 
   return (
     <InsightCard>
       <InsightCard.Title>Deaths</InsightCard.Title>
       <InsightCard.Description>
-        You died {deaths.length} {deaths.length === 1 ? 'time' : 'times'} during this dungeon run.
+        {deaths.length} {deaths.length === 1 ? 'death' : 'deaths'} during this dungeon run. Focus on positioning and defensive cooldowns to improve survivability.
       </InsightCard.Description>
 
       <div style={{

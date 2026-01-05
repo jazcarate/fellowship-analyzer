@@ -81,29 +81,18 @@ export function PlayerInsightsPage({ dungeonId, playerId, dungeons, onFileSelect
           border: '1px solid var(--border)',
           marginBottom: '30px'
         }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <button class="back-button" onClick={() => route('/')}>
-                ← Back to Dungeon List
-              </button>
-            </div>
-            <h1 style={{ fontSize: '28px', margin: 0 }}>{dungeon.name}</h1>
-            <div>
-              <DungeonLevelBadge level={dungeon.difficulty} />
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              {player.hero.icon && (
-                <img
-                  src={player.hero.icon}
-                  alt={player.hero.name}
-                  style={{
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '50%',
-                    border: `3px solid ${heroColor}`
-                  }}
-                />
-              )}
+              <img
+                src={player.hero.icon}
+                alt={player.hero.name}
+                style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  border: `3px solid ${heroColor}`
+                }}
+              />
               <div>
                 <h2 style={{ fontSize: '20px', fontWeight: '600', margin: 0, color: heroColor }}>
                   {player.hero.name} - {player.playerName}
@@ -113,6 +102,11 @@ export function PlayerInsightsPage({ dungeonId, playerId, dungeons, onFileSelect
                 </p>
               </div>
             </div>
+            <h1 style={{ fontSize: '28px', margin: 0 }}>
+              {dungeon.name}
+              {' '}•{' '}
+              <DungeonLevelBadge level={dungeon.difficulty} />
+            </h1>
           </div>
         </div>
 

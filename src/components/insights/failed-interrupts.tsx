@@ -161,8 +161,10 @@ export function FailedInterruptsInsight() {
                 }}
                 onMouseEnter={() => setHoveredTime(cast.startTime)}
               >
-                <Time seconds={cast.startTime} /> •{' '}
-                <DamageNumber damage={cast.damage} />
+                <Time seconds={cast.startTime} />
+                {cast.damage > 0 && (<>
+                  {' '}•{' '}<DamageNumber damage={cast.damage} />
+                </>)}
                 <span style={{ color: 'var(--text-secondary)' }}>
                   {' '}
                   ({duration.toFixed(1)}s)
@@ -176,7 +178,14 @@ export function FailedInterruptsInsight() {
   }).filter(r => r !== null);
 
   if (relevant.length === 0) {
-    return null;
+    return (
+      <InsightCard positive>
+        <InsightCard.Title>Interrupt Opportunities</InsightCard.Title>
+        <InsightCard.Description>
+          All dangerous enemy casts were successfully interrupted - excellent interrupt usage!
+        </InsightCard.Description>
+      </InsightCard>
+    );
   }
 
   return (

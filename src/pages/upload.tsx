@@ -1,3 +1,4 @@
+import { useLocation } from 'preact-iso';
 import { useState, useRef } from 'preact/hooks';
 
 interface UploadPageProps {
@@ -7,35 +8,44 @@ interface UploadPageProps {
 export function UploadPage({ onFileSelect }: UploadPageProps) {
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { route } = useLocation();
 
   const handleFileUpload = async (event: Event) => {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
+    const files = input.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.name.endsWith('.txt')) {
-      alert('Please select a .txt file');
+    const txtFiles = Array.from(files).filter(file => file.name.endsWith('.txt'));
+
+    if (txtFiles.length === 0) {
+      alert('Please select .txt files');
       return;
     }
 
-    const text = await file.text();
-    onFileSelect(text);
+    const textContents = await Promise.all(txtFiles.map(file => file.text()));
+    const combinedText = textContents.join('\n');
+    route('/');
+    onFileSelect(combinedText);
   };
 
   const handleFileDrop = async (event: DragEvent) => {
     event.preventDefault();
     setDragging(false);
 
-    const file = event?.dataTransfer?.files[0];
-    if (!file) return;
+    const files = event?.dataTransfer?.files;
+    if (!files || files.length === 0) return;
 
-    if (!file.name.endsWith('.txt')) {
-      alert('Please drop a .txt file');
+    const txtFiles = Array.from(files).filter(file => file.name.endsWith('.txt'));
+
+    if (txtFiles.length === 0) {
+      alert('Please drop .txt files');
       return;
     }
 
-    const text = await file.text();
-    onFileSelect(text);
+    const textContents = await Promise.all(txtFiles.map(file => file.text()));
+    const combinedText = textContents.join('\n');
+    route('/');
+    onFileSelect(combinedText);
   };
 
   return (
@@ -62,6 +72,7 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
         ref={fileInputRef}
         onChange={handleFileUpload}
         accept=".txt"
+        multiple
         style={{ display: 'none' }}
       />
       <label for="fileInput" style={{ cursor: 'pointer', display: 'block' }}>
@@ -72,13 +83,13 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
           color: 'var(--text-primary)',
           marginBottom: '12px'
         }}>
-          {dragging ? 'Drop your combat log here' : 'Drop your combat log here or click to browse'}
+          {dragging ? 'Drop your combat logs here' : 'Drop your combat logs here or click to browse'}
         </div>
         <div style={{
           fontSize: '14px',
           color: 'var(--text-secondary)'
         }}>
-          Upload Fellowship combat logs (.txt files)
+          Upload Fellowship combat logs (.txt files) - Multiple files supported
         </div>
       </label>
     </div>

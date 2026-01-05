@@ -69,8 +69,9 @@ export function AlwaysBeCastingInsight() {
       <InsightCard.Description>
         Maximize damage and effectiveness by minimizing downtime between abilities.
         Gaps longer than {GAP_THRESHOLD} seconds indicate periods where more activity was possible.
-        Uptime: {uptime.toFixed(1)}%
       </InsightCard.Description>
+
+      <p>Downtime: {(100 - uptime).toFixed(1)}%</p>
 
       <div style={{ marginTop: '16px' }}>
         <DungeonGraph>
