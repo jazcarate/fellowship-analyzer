@@ -1,4 +1,3 @@
-import { useLocation } from 'preact-iso';
 import { useState, useRef } from 'preact/hooks';
 
 interface UploadPageProps {
@@ -8,7 +7,6 @@ interface UploadPageProps {
 export function UploadPage({ onFileSelect }: UploadPageProps) {
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { route } = useLocation();
 
   const handleFileUpload = async (event: Event) => {
     const input = event.target as HTMLInputElement;
@@ -44,7 +42,6 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
 
     const textContents = await Promise.all(txtFiles.map(file => file.text()));
     const combinedText = textContents.join('\n');
-    route('/');
     onFileSelect(combinedText);
   };
 

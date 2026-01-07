@@ -16,16 +16,16 @@ export function App() {
   useEffect(() => {
     const loadStoredLog = async () => {
       try {
+        setLoading(true);
         const storedLog = await getLogText();
         if (storedLog) {
-          setLoading(true);
           const parsedDungeons = parseLog(storedLog);
           console.log('Parsed dungeons:', parsedDungeons);
           setDungeons(parsedDungeons);
-          setLoading(false);
         }
       } catch (err) {
         console.error('Could not load stored log:', err);
+      } finally {
         setLoading(false);
       }
     };
