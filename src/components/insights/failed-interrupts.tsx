@@ -123,8 +123,10 @@ export function FailedInterruptsInsight() {
         }}
       >
         <div style={{ marginBottom: '8px' }}>
-          <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '4px' }}>
-            {abilityName}
+          <div style={{ marginBottom: '4px' }}>
+            <span style={{ fontSize: '16px', fontWeight: '600' }}>{abilityName}</span>
+            {' '}
+            {relevantCasts.length > 0 ? relevantCasts[0]!.sourceName : ''}
           </div>
         </div>
 
@@ -173,7 +175,7 @@ export function FailedInterruptsInsight() {
             );
           })}
         </div>
-      </div>
+      </div >
     );
   }).filter(r => r !== null);
 

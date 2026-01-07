@@ -19,4 +19,5 @@ export const INTERRUPTIBLE_ABILITIES = new Set<number>([
   636,  // Dread Arc
   64,   // Temporal Manipulation
   218,  // Icy Annihilation
+  714,  // Frigid Mists
 ]);
