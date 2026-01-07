@@ -22,9 +22,17 @@ function toArray(param: string | null): number[] {
     .map(s => parseInt(s.trim()));
 }
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 export function parseLog(logText: string): Dungeon[] {
   const dungeons: Dungeon[] = [];
   let currentDungeon: Dungeon | null = null;
+  const dungeonCountByName = new Map<string, number>();
 
   function processLine(line: string): void {
     const trimmed = line.trim();
@@ -164,8 +172,15 @@ export function parseLog(logText: string): Dungeon[] {
 
     const difficulty = parseInt(params[4]!) || 0;
 
+    // Create slug from dungeon name
+    const dungeonSlug = slugify(dungeonName);
+
+    // Get or initialize count for this dungeon type
+    const currentCount = dungeonCountByName.get(dungeonSlug) || 0;
+    dungeonCountByName.set(dungeonSlug, currentCount + 1);
+
     currentDungeon = {
-      id: `dungeon-${dungeons.length}`,
+      id: `${dungeonSlug}-${currentCount}`,
       dungeonId,
       name: dungeonName,
       difficulty,

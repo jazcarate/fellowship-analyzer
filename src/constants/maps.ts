@@ -130,6 +130,20 @@ const DUNGEONS: Record<number, DungeonConfig> = {
       }
     }
   },
+  7: {
+    name: 'Cithrel\'s Fall',
+    maps: {
+      1: {
+        bounds: {
+          minX: -33641.617051,
+          maxX: 29958.382949,
+          minY: -19570.601320,
+          maxY: 33429.398680
+        },
+        image: '/assets/maps/cithels_fall.webp'
+      }
+    }
+  },
   8: {
     name: 'Wyrmheart',
     maps: {
@@ -256,6 +270,38 @@ const DUNGEONS: Record<number, DungeonConfig> = {
           maxY: 24918.580470
         },
         image: '/assets/maps/urrak_markets.webp'
+      }
+    }
+  },
+  23: {
+    name: 'Ransack of Drakheim',
+    maps: {
+      17: {
+        bounds: {
+          minX: -19008.111284,
+          maxX: 50991.891635,
+          minY: -7228.665600,
+          maxY: 27771.334400
+        },
+        image: '/assets/maps/ransack_of_drakheim_start.webp'
+      },
+      18: {
+        bounds: {
+          minX: -35021.965841,
+          maxX: 20978.034159,
+          minY: -12875.467650,
+          maxY: 15124.532350
+        },
+        image: '/assets/maps/ransack_of_drakheim_upper.webp'
+      },
+      19: {
+        bounds: {
+          minX: -32006.749434,
+          maxX: 33690.790849,
+          minY: -35152.113329,
+          maxY: -2303.343188
+        },
+        image: '/assets/maps/ransack_of_drakheim_lower.webp'
       }
     }
   },

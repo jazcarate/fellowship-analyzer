@@ -4,7 +4,7 @@ import { PlayerBadge, ModifierBadge, DungeonLevelBadge } from './common/badges';
 import { Time } from './common/time';
 
 interface DungeonCardProps {
-  dungeon: Dungeon;
+  dungeon: Dungeon & { logFilename: string };
 }
 
 export function DungeonCard({ dungeon }: DungeonCardProps) {
@@ -82,7 +82,7 @@ export function DungeonCard({ dungeon }: DungeonCardProps) {
                 transition: 'box-shadow 0.2s',
                 borderRadius: '6px'
               }}
-              onClick={() => route(`/dungeon/${dungeon.id}/player/${player.playerId}`)}
+              onClick={() => route(`/log/${encodeURIComponent(dungeon.logFilename)}/dungeon/${dungeon.id}/player/${player.playerId}`)}
               onMouseOver={(e) => {
                 const el = e.currentTarget as HTMLElement;
                 el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';

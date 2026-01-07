@@ -17,15 +17,16 @@ import { Header } from '../components/common/header';
 import { DungeonPercentageInsight } from '../components/insights/dungeon-percentage';
 
 interface PlayerInsightsPageProps {
+  logFilename?: string;
   dungeonId?: string;
   playerId?: string;
-  dungeons: Dungeon[];
-  onFileSelect: (text: string) => void;
+  dungeons: Array<Dungeon & { logFilename: string }>;
+  onFileSelect: (files: File[], navigate?: () => void) => Promise<void>;
 }
 
-export function PlayerInsightsPage({ dungeonId, playerId, dungeons, onFileSelect }: PlayerInsightsPageProps) {
+export function PlayerInsightsPage({ logFilename, dungeonId, playerId, dungeons, onFileSelect }: PlayerInsightsPageProps) {
   const { route } = useLocation();
-  const dungeon = dungeons.find(d => d.id === dungeonId);
+  const dungeon = dungeons.find(d => d.id === dungeonId && d.logFilename === decodeURIComponent(logFilename || ''));
   const player = dungeon?.players.find(p => p.playerId === playerId);
 
   if (!dungeon || !player) {

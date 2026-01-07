@@ -3,8 +3,8 @@ import { DungeonCard } from '../components/dungeon-card';
 import { Header } from '../components/common/header';
 
 interface DungeonListPageProps {
-  dungeons: Dungeon[];
-  onFileSelect: (text: string) => void;
+  dungeons: Array<Dungeon & { logFilename: string }>;
+  onFileSelect: (files: File[], navigate?: () => void) => Promise<void>;
 }
 
 export function DungeonListPage({ dungeons, onFileSelect }: DungeonListPageProps) {
@@ -23,9 +23,9 @@ export function DungeonListPage({ dungeons, onFileSelect }: DungeonListPageProps
         gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
         gap: '20px'
       }}>
-        {dungeons.map(dungeon => (
+        {dungeons.map((dungeon, dix) => (
           <DungeonCard
-            key={dungeon.id}
+            key={dix}
             dungeon={dungeon}
           />
         ))}

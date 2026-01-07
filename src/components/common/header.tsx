@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 
 interface HeaderProps {
-  onFileSelect?: (text: string) => void;
+  onFileSelect?: (files: File[], navigate?: () => void) => Promise<void>;
   showUpload?: boolean;
 }
 
@@ -24,11 +24,8 @@ export function Header({ onFileSelect, showUpload = false }: HeaderProps) {
       return;
     }
 
-    const textContents = await Promise.all(txtFiles.map(file => file.text()));
-    const combinedText = textContents.join('\n');
-
     if (onFileSelect) {
-      await onFileSelect(combinedText);
+      await onFileSelect(txtFiles, () => route('/'));
     }
   };
 
@@ -48,11 +45,8 @@ export function Header({ onFileSelect, showUpload = false }: HeaderProps) {
       return;
     }
 
-    const textContents = await Promise.all(txtFiles.map(file => file.text()));
-    const combinedText = textContents.join('\n');
-
     if (onFileSelect) {
-      await onFileSelect(combinedText);
+      await onFileSelect(txtFiles, () => route('/'));
     }
   };
 

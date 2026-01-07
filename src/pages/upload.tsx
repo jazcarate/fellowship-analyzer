@@ -1,7 +1,7 @@
 import { useState, useRef } from 'preact/hooks';
 
 interface UploadPageProps {
-  onFileSelect: (text: string) => void;
+  onFileSelect: (files: File[], navigate?: () => void) => Promise<void>;
 }
 
 export function UploadPage({ onFileSelect }: UploadPageProps) {
@@ -20,10 +20,7 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
       return;
     }
 
-    const textContents = await Promise.all(txtFiles.map(file => file.text()));
-    const combinedText = textContents.join('\n');
-    route('/');
-    onFileSelect(combinedText);
+    await onFileSelect(txtFiles);
   };
 
   const handleFileDrop = async (event: DragEvent) => {
@@ -40,9 +37,7 @@ export function UploadPage({ onFileSelect }: UploadPageProps) {
       return;
     }
 
-    const textContents = await Promise.all(txtFiles.map(file => file.text()));
-    const combinedText = textContents.join('\n');
-    onFileSelect(combinedText);
+    await onFileSelect(txtFiles);
   };
 
   return (

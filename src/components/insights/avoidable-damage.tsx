@@ -100,6 +100,7 @@ export function AvoidableDamageInsight() {
                 <div style={{ fontSize: '15px', fontWeight: '600' }}>
                   {abilities[abilityId]!.name}
                 </div>
+                {windows.length > 0 ? windows[0]!.sourceName : ''}
                 <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
                   <DamageNumber damage={totalDamage} /> total
                 </div>
@@ -131,7 +132,7 @@ export function AvoidableDamageInsight() {
                     }}
                     onMouseEnter={() => setHoveredTime(window.startTime)}
                   >
-                    <Time seconds={window.startTime} /> - {window.sourceName} • <DamageNumber damage={window.totalDamage} />
+                    <Time seconds={window.startTime} /> • <DamageNumber damage={window.totalDamage} />
                     {' '}
                     <span style={{ color: 'var(--text-secondary)' }}>
                       ({window.count} {window.count === 1 ? 'hit' : 'hits'})
